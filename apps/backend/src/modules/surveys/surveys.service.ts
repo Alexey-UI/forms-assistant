@@ -90,12 +90,14 @@ export async function getSurveyForAuthor(surveyId: string, authorId: string) {
 export async function updateSurvey(surveyId: string, authorId: string, input: UpdateSurveyInput) {
   const existing = await getOwnedSurveyOrThrow(surveyId, authorId);
 
-  if (existing.status !== 'DRAFT' && (input.questions || input.anonymityMode)) {
-    throw new BadRequestError('Вопросы и режим анонимности можно менять только у черновика опроса');
-  }
+  // Вопросы и режим анонимности можно менять только у черновика — после публикации
+  // эти поля молча игнорируются, чтобы не ломать сохранение title/description и т.п.
+  const isDraft = existing.status === 'DRAFT';
+  const nextQuestions = isDraft ? input.questions : undefined;
+  const nextAnonymityMode = isDraft ? input.anonymityMode : undefined;
 
   const survey = await prisma.$transaction(async (tx) => {
-    if (input.questions) {
+    if (nextQuestions) {
       await tx.question.deleteMany({ where: { surveyId } });
     }
     return tx.survey.update({
@@ -104,10 +106,8 @@ export async function updateSurvey(surveyId: string, authorId: string, input: Up
         title: input.title,
         description: input.description,
         allowMultipleSubmissions: input.allowMultipleSubmissions,
-        anonymityMode: input.anonymityMode,
-        questions: input.questions
-          ? { create: toQuestionsCreateInput(input.questions) }
-          : undefined,
+        anonymityMode: nextAnonymityMode,
+        questions: nextQuestions ? { create: toQuestionsCreateInput(nextQuestions) } : undefined,
       },
       include: QUESTIONS_INCLUDE,
     });

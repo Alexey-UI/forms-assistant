@@ -1,0 +1,26 @@
+.form {
+  max-width: 640px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.5rem 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+.lockedNotice {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: #c62828;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.submitRow {
+  margin-top: 1.5rem;
+}

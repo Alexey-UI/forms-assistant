@@ -1,11 +1,66 @@
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import type { CreateSurveyInput, SurveyDetailDto } from '@forms-assistant/shared';
+import { api, ApiError } from '@/shared/api/client';
+import { useUiStore } from '@/shared/model/ui.store';
+import { SurveyBuilderForm } from '@/features/survey/SurveyBuilderForm';
+import { SurveyManagementPanel } from '@/widgets/SurveyManagementPanel';
 
 export function SurveyEditPage() {
-  const { surveyId } = useParams();
+  const { surveyId } = useParams<{ surveyId: string }>();
+  const [survey, setSurvey] = useState<SurveyDetailDto | null>(null);
+  const notify = useUiStore((state) => state.notify);
+
+  const load = useCallback(async () => {
+    if (!surveyId) return;
+    setSurvey(await api.get<SurveyDetailDto>(`/surveys/${surveyId}`));
+  }, [surveyId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (!survey) {
+    return <p>Загрузка…</p>;
+  }
+
+  const locked = survey.status !== 'DRAFT';
+
+  const handleSubmit = async (values: CreateSurveyInput) => {
+    try {
+      const updated = await api.patch<SurveyDetailDto>(`/surveys/${survey.id}`, values);
+      setSurvey(updated);
+      notify('success', 'Изменения сохранены');
+    } catch (error) {
+      notify('error', error instanceof ApiError ? error.message : 'Не удалось сохранить изменения');
+    }
+  };
+
+  const defaultValues: CreateSurveyInput = {
+    title: survey.title,
+    description: survey.description ?? '',
+    anonymityMode: survey.anonymityMode,
+    allowMultipleSubmissions: survey.allowMultipleSubmissions,
+    questions: survey.questions.map((question) => ({
+      type: question.type,
+      text: question.text,
+      required: question.required,
+      order: question.order,
+      options: question.options.map((option) => ({ text: option.text })),
+    })),
+  };
+
   return (
     <div>
-      <h1>Редактирование опроса</h1>
-      <p>Опрос {surveyId} — редактор появится в рамках следующего этапа.</p>
+      <h1>{survey.title}</h1>
+      <SurveyManagementPanel survey={survey} onChange={() => void load()} />
+      <SurveyBuilderForm
+        key={survey.updatedAt}
+        defaultValues={defaultValues}
+        submitLabel="Сохранить"
+        locked={locked}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
