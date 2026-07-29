@@ -1,0 +1,20 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 480px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+}
+
+.muted {
+  color: #666;
+  font-size: 0.85rem;
+}
