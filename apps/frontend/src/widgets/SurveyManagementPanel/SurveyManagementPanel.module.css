@@ -65,13 +65,14 @@
 
 .inviteForm {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .inviteForm > div {
   flex: 1;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .inviteResult {
