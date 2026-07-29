@@ -1,0 +1,1 @@
+export { SurveyTakePage } from './SurveyTakePage';
