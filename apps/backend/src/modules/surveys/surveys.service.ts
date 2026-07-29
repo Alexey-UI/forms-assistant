@@ -61,6 +61,22 @@ export async function listMySurveys(authorId: string) {
   return surveys.map(toSurveySummaryDto);
 }
 
+export async function listSharedWithMe(userId: string) {
+  const surveys = await prisma.survey.findMany({
+    where: {
+      status: 'PUBLISHED',
+      authorId: { not: userId },
+      OR: [
+        { invites: { some: { userId } } },
+        { groupShares: { some: { group: { members: { some: { userId } } } } } },
+      ],
+    },
+    include: { _count: { select: { responses: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return surveys.map(toSurveySummaryDto);
+}
+
 export async function getSurveyForAuthor(surveyId: string, authorId: string) {
   await getOwnedSurveyOrThrow(surveyId, authorId);
   const survey = await prisma.survey.findUniqueOrThrow({

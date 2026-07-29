@@ -1,0 +1,11 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+}
+
+.formError {
+  color: #c62828;
+  font-size: 0.9rem;
+  margin: -0.5rem 0 1rem;
+}

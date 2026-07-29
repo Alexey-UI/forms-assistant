@@ -26,6 +26,7 @@ export const router = createBrowserRouter([
           { path: '/surveys/new', element: <SurveyCreatePage /> },
           { path: '/surveys/:surveyId/edit', element: <SurveyEditPage /> },
           { path: '/surveys/:surveyId/results', element: <SurveyResultsPage /> },
+          { path: '/surveys/:surveyId/take', element: <SurveyTakePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

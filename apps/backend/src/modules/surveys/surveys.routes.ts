@@ -17,6 +17,7 @@ import {
   getSurveyHandler,
   inviteUsersHandler,
   listMySurveysHandler,
+  listSharedWithMeHandler,
   publishSurveyHandler,
   revokeShareLinkHandler,
   shareWithGroupHandler,
@@ -34,6 +35,7 @@ export const surveysRouter = Router();
 surveysRouter.use(requireAuth);
 
 surveysRouter.get('/mine', asyncHandler(listMySurveysHandler));
+surveysRouter.get('/shared-with-me', asyncHandler(listSharedWithMeHandler));
 surveysRouter.post('/', validateBody(createSurveySchema), asyncHandler(createSurveyHandler));
 surveysRouter.get('/:id', asyncHandler(getSurveyHandler));
 surveysRouter.patch('/:id', validateBody(updateSurveySchema), asyncHandler(updateSurveyHandler));

@@ -4,14 +4,17 @@ import { api } from '@/shared/api/client';
 
 interface SurveysState {
   mySurveys: SurveySummaryDto[];
+  sharedWithMe: SurveySummaryDto[];
   status: 'idle' | 'loading' | 'loaded' | 'error';
   error: string | null;
   fetchMySurveys: () => Promise<void>;
+  fetchSharedWithMe: () => Promise<void>;
   removeSurveyFromList: (surveyId: string) => void;
 }
 
 export const useSurveysStore = create<SurveysState>((set) => ({
   mySurveys: [],
+  sharedWithMe: [],
   status: 'idle',
   error: null,
 
@@ -25,6 +28,15 @@ export const useSurveysStore = create<SurveysState>((set) => ({
         status: 'error',
         error: error instanceof Error ? error.message : 'Не удалось загрузить опросы',
       });
+    }
+  },
+
+  fetchSharedWithMe: async () => {
+    try {
+      const sharedWithMe = await api.get<SurveySummaryDto[]>('/surveys/shared-with-me');
+      set({ sharedWithMe });
+    } catch {
+      // молча игнорируем — список участия не критичен для остального профиля
     }
   },
 

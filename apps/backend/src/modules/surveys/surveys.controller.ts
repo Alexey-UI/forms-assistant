@@ -10,6 +10,10 @@ export async function listMySurveysHandler(req: Request, res: Response) {
   res.json(await surveysService.listMySurveys(req.userId as string));
 }
 
+export async function listSharedWithMeHandler(req: Request, res: Response) {
+  res.json(await surveysService.listSharedWithMe(req.userId as string));
+}
+
 export async function getSurveyHandler(req: Request, res: Response) {
   res.json(await surveysService.getSurveyForAuthor(req.params.id as string, req.userId as string));
 }
