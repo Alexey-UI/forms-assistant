@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import type { AnswerInput, SurveyForTakingDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { TakeSurveyForm } from '@/features/survey/TakeSurveyForm';
+import { Card } from '@/shared/ui/Card';
+import { StateMessage } from '@/shared/ui/StateMessage';
+import styles from './SurveyTakePage.module.css';
 
 export function SurveyTakePage() {
   const { token, surveyId } = useParams<{ token?: string; surveyId?: string }>();
+  const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const authStatus = useAuthStore((state) => state.status);
   const [survey, setSurvey] = useState<SurveyForTakingDto | null>(null);
@@ -46,42 +50,68 @@ export function SurveyTakePage() {
   };
 
   if (error) {
-    return <p>{error}</p>;
+    return <StateMessage tone="error">{error}</StateMessage>;
   }
 
   if (!survey) {
-    return <p>Загрузка…</p>;
+    return <StateMessage>Загрузка…</StateMessage>;
   }
 
   if (submitted) {
-    return <h1>Спасибо! Ваш ответ отправлен.</h1>;
+    return (
+      <div className={styles.page}>
+        <Card className={styles.centerCard}>
+          <span className={styles.successIcon}>✓</span>
+          <h1>Спасибо!</h1>
+          <p>Ваш ответ отправлен.</p>
+        </Card>
+      </div>
+    );
   }
 
   if (survey.alreadySubmitted) {
-    return <h1>Вы уже проходили этот опрос.</h1>;
+    return (
+      <div className={styles.page}>
+        <Card className={styles.centerCard}>
+          <h1>{survey.title}</h1>
+          <p>Вы уже проходили этот опрос.</p>
+        </Card>
+      </div>
+    );
   }
 
   if (survey.requiresAuth && !user) {
     return (
-      <div>
-        <h1>{survey.title}</h1>
-        <p>
-          Для прохождения этого опроса нужно войти в аккаунт. <Link to="/login">Войти</Link> или{' '}
-          <Link to="/register">зарегистрироваться</Link>.
-        </p>
+      <div className={styles.page}>
+        <Card className={styles.centerCard}>
+          <h1>{survey.title}</h1>
+          <p>
+            Для прохождения этого опроса нужно войти в аккаунт.{' '}
+            <Link to="/login" state={{ from: location }}>
+              Войти
+            </Link>{' '}
+            или{' '}
+            <Link to="/register" state={{ from: location }}>
+              зарегистрироваться
+            </Link>
+            .
+          </p>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1>{survey.title}</h1>
-      {survey.description && <p>{survey.description}</p>}
-      <TakeSurveyForm
-        questions={survey.questions}
-        submitting={submitting}
-        onSubmit={handleSubmit}
-      />
+    <div className={styles.page}>
+      <Card>
+        <h1>{survey.title}</h1>
+        {survey.description && <p className={styles.description}>{survey.description}</p>}
+        <TakeSurveyForm
+          questions={survey.questions}
+          submitting={submitting}
+          onSubmit={handleSubmit}
+        />
+      </Card>
     </div>
   );
 }

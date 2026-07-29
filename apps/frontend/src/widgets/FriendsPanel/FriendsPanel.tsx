@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FriendRequestDto, UserDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useUiStore } from '@/shared/model/ui.store';
+import { initials } from '@/shared/lib/initials';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import styles from './FriendsPanel.module.css';
@@ -73,8 +74,12 @@ export function FriendsPanel() {
         <ul className={styles.list}>
           {results.map((user) => (
             <li key={user.id} className={styles.item}>
-              <span>
-                {user.displayName} <span className={styles.muted}>({user.email})</span>
+              <span className={styles.person}>
+                <span className={styles.avatar}>{initials(user.displayName)}</span>
+                <span>
+                  <span className={styles.name}>{user.displayName}</span>{' '}
+                  <span className={styles.muted}>({user.email})</span>
+                </span>
               </span>
               <Button type="button" onClick={() => void sendRequest(user.id)}>
                 Добавить
@@ -86,11 +91,14 @@ export function FriendsPanel() {
 
       {incoming.length > 0 && (
         <>
-          <h3>Входящие заявки</h3>
+          <h3 className={styles.sectionLabel}>Входящие заявки</h3>
           <ul className={styles.list}>
             {incoming.map((request) => (
               <li key={request.id} className={styles.item}>
-                <span>{request.fromUser.displayName}</span>
+                <span className={styles.person}>
+                  <span className={styles.avatar}>{initials(request.fromUser.displayName)}</span>
+                  <span className={styles.name}>{request.fromUser.displayName}</span>
+                </span>
                 <div className={styles.actions}>
                   <Button type="button" onClick={() => void respond(request.id, 'ACCEPT')}>
                     Принять
@@ -109,14 +117,17 @@ export function FriendsPanel() {
         </>
       )}
 
-      <h3>Друзья</h3>
+      <h3 className={styles.sectionLabel}>Друзья</h3>
       {friends.length === 0 ? (
         <p className={styles.muted}>Пока нет друзей — найдите кого-нибудь выше.</p>
       ) : (
         <ul className={styles.list}>
           {friends.map((friend) => (
             <li key={friend.id} className={styles.item}>
-              <span>{friend.displayName}</span>
+              <span className={styles.person}>
+                <span className={styles.avatar}>{initials(friend.displayName)}</span>
+                <span className={styles.name}>{friend.displayName}</span>
+              </span>
               <span className={styles.muted}>{friend.email}</span>
             </li>
           ))}

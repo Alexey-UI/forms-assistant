@@ -4,6 +4,10 @@ import type { SurveyParticipantDto, SurveyResultsDto } from '@forms-assistant/sh
 import { api, ApiError } from '@/shared/api/client';
 import { SurveyResults } from '@/widgets/SurveyResults';
 import { SurveyParticipants } from '@/widgets/SurveyParticipants';
+import { Card } from '@/shared/ui/Card';
+import { PageHeading } from '@/shared/ui/PageHeading';
+import { StateMessage } from '@/shared/ui/StateMessage';
+import styles from './SurveyResultsPage.module.css';
 
 export function SurveyResultsPage() {
   const { surveyId } = useParams<{ surveyId: string }>();
@@ -27,19 +31,23 @@ export function SurveyResultsPage() {
   }, [surveyId]);
 
   if (error) {
-    return <p>{error}</p>;
+    return <StateMessage tone="error">{error}</StateMessage>;
   }
 
   if (!results || !participants) {
-    return <p>Загрузка…</p>;
+    return <StateMessage>Загрузка…</StateMessage>;
   }
 
   return (
-    <div>
-      <h1>Результаты опроса</h1>
-      <SurveyResults results={results} />
-      <h2>Участники</h2>
-      <SurveyParticipants participants={participants} />
+    <div className={styles.page}>
+      <PageHeading eyebrow="Результаты" title="Результаты опроса" />
+      <Card className={styles.section}>
+        <SurveyResults results={results} />
+      </Card>
+      <Card className={styles.section}>
+        <h2>Участники</h2>
+        <SurveyParticipants participants={participants} />
+      </Card>
     </div>
   );
 }

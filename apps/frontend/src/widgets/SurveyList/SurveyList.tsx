@@ -14,6 +14,12 @@ const STATUS_LABEL: Record<SurveySummaryDto['status'], string> = {
   CLOSED: 'Закрыт',
 };
 
+const STATUS_BADGE_CLASS: Record<SurveySummaryDto['status'], string> = {
+  DRAFT: styles.badgeDraft!,
+  PUBLISHED: styles.badgePublished!,
+  CLOSED: styles.badgeClosed!,
+};
+
 interface SurveyListProps {
   surveys: SurveySummaryDto[];
   emptyText: string;
@@ -30,10 +36,14 @@ export function SurveyList({ surveys, emptyText, renderActions }: SurveyListProp
       {surveys.map((survey) => (
         <li key={survey.id} className={styles.item}>
           <div>
-            <div className={styles.title}>{survey.title}</div>
+            <div className={styles.titleRow}>
+              <span className={styles.title}>{survey.title}</span>
+              <span className={`${styles.badge} ${STATUS_BADGE_CLASS[survey.status]}`}>
+                {STATUS_LABEL[survey.status]}
+              </span>
+            </div>
             <div className={styles.meta}>
-              {STATUS_LABEL[survey.status]} · {ANONYMITY_LABEL[survey.anonymityMode]} · ответов:{' '}
-              {survey.responseCount}
+              {ANONYMITY_LABEL[survey.anonymityMode]} · ответов: {survey.responseCount}
             </div>
           </div>
           <div className={styles.actions}>{renderActions(survey)}</div>

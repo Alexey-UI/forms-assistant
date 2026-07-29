@@ -2,29 +2,72 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .createForm > div {
   flex: 1;
+  margin-bottom: 1rem;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.groupIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.roleBadge {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.roleAdmin {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
 }
 
 .muted {
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
 }

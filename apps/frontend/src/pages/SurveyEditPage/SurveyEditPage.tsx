@@ -5,6 +5,9 @@ import { api, ApiError } from '@/shared/api/client';
 import { useUiStore } from '@/shared/model/ui.store';
 import { SurveyBuilderForm } from '@/features/survey/SurveyBuilderForm';
 import { SurveyManagementPanel } from '@/widgets/SurveyManagementPanel';
+import { Card } from '@/shared/ui/Card';
+import { PageHeading } from '@/shared/ui/PageHeading';
+import { StateMessage } from '@/shared/ui/StateMessage';
 
 export function SurveyEditPage() {
   const { surveyId } = useParams<{ surveyId: string }>();
@@ -21,7 +24,7 @@ export function SurveyEditPage() {
   }, [load]);
 
   if (!survey) {
-    return <p>Загрузка…</p>;
+    return <StateMessage>Загрузка…</StateMessage>;
   }
 
   const locked = survey.status !== 'DRAFT';
@@ -52,15 +55,17 @@ export function SurveyEditPage() {
 
   return (
     <div>
-      <h1>{survey.title}</h1>
+      <PageHeading eyebrow="Редактирование" title={survey.title} />
       <SurveyManagementPanel survey={survey} onChange={() => void load()} />
-      <SurveyBuilderForm
-        key={survey.updatedAt}
-        defaultValues={defaultValues}
-        submitLabel="Сохранить"
-        locked={locked}
-        onSubmit={handleSubmit}
-      />
+      <Card>
+        <SurveyBuilderForm
+          key={survey.updatedAt}
+          defaultValues={defaultValues}
+          submitLabel="Сохранить"
+          locked={locked}
+          onSubmit={handleSubmit}
+        />
+      </Card>
     </div>
   );
 }

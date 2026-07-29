@@ -5,19 +5,31 @@
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   margin: -0.5rem 0 1.5rem;
   font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.checkbox input {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
 }
 
 .lockedNotice {
-  color: #666;
+  display: inline-block;
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
   margin-bottom: 1rem;
 }
 
 .error {
-  color: #c62828;
-  font-size: 0.9rem;
+  color: var(--color-danger);
+  font-size: 0.88rem;
   margin-bottom: 1rem;
 }
 

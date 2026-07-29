@@ -2,7 +2,7 @@ import { forwardRef, type TextareaHTMLAttributes } from 'react';
 import styles from '../Input/Input.module.css';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label: string;
+  label?: string;
   error?: string;
 }
 
@@ -13,9 +13,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   const textareaId = id ?? rest.name;
   return (
     <div className={styles.field}>
-      <label htmlFor={textareaId} className={styles.label}>
-        {label}
-      </label>
+      {label ? (
+        <label htmlFor={textareaId} className={styles.label}>
+          {label}
+        </label>
+      ) : null}
       <textarea id={textareaId} ref={ref} className={styles.input} rows={3} {...rest} />
       {error ? <span className={styles.error}>{error}</span> : null}
     </div>

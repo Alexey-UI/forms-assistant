@@ -2,7 +2,7 @@ import { forwardRef, type SelectHTMLAttributes } from 'react';
 import styles from '../Input/Input.module.css';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  label: string;
+  label?: string;
   error?: string;
 }
 
@@ -13,9 +13,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const selectId = id ?? rest.name;
   return (
     <div className={styles.field}>
-      <label htmlFor={selectId} className={styles.label}>
-        {label}
-      </label>
+      {label ? (
+        <label htmlFor={selectId} className={styles.label}>
+          {label}
+        </label>
+      ) : null}
       <select id={selectId} ref={ref} className={styles.input} {...rest}>
         {children}
       </select>

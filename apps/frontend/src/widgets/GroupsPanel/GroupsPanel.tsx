@@ -53,9 +53,17 @@ export function GroupsPanel() {
         <ul className={styles.list}>
           {groups.map((group) => (
             <li key={group.id} className={styles.item}>
-              <span>{group.name}</span>
-              <span className={styles.muted}>
-                {group.memberCount} участников · {group.myRole === 'ADMIN' ? 'админ' : 'участник'}
+              <span className={styles.groupInfo}>
+                <span className={styles.groupIcon}>{group.name[0]?.toUpperCase()}</span>
+                <span>
+                  <span className={styles.name}>{group.name}</span>
+                  <span className={styles.muted}> · {group.memberCount} участников</span>
+                </span>
+              </span>
+              <span
+                className={`${styles.roleBadge} ${group.myRole === 'ADMIN' ? styles.roleAdmin : ''}`}
+              >
+                {group.myRole === 'ADMIN' ? 'админ' : 'участник'}
               </span>
             </li>
           ))}

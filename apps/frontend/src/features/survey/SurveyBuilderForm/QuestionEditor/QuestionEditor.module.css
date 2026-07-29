@@ -1,8 +1,9 @@
 .question {
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.1rem 0.75rem;
+  margin-bottom: 1.1rem;
+  background: var(--color-surface-muted);
 }
 
 .row {
@@ -14,9 +15,16 @@
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   margin: -0.5rem 0 1rem;
   font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.checkbox input {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
 }
 
 .options {
@@ -34,7 +42,7 @@
 }
 
 .error {
-  color: #c62828;
+  color: var(--color-danger);
   font-size: 0.85rem;
   margin: -0.5rem 0 0.5rem;
 }

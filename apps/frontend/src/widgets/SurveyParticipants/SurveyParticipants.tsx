@@ -1,4 +1,5 @@
 import type { SurveyParticipantDto } from '@forms-assistant/shared';
+import { initials } from '@/shared/lib/initials';
 import styles from './SurveyParticipants.module.css';
 
 export function SurveyParticipants({ participants }: { participants: SurveyParticipantDto[] }) {
@@ -10,7 +11,10 @@ export function SurveyParticipants({ participants }: { participants: SurveyParti
     <ul className={styles.list}>
       {participants.map((participant) => (
         <li key={participant.user.id} className={styles.item}>
-          <span>{participant.user.displayName}</span>
+          <span className={styles.name}>
+            <span className={styles.avatar}>{initials(participant.user.displayName)}</span>
+            {participant.user.displayName}
+          </span>
           <span className={styles.muted}>
             {new Date(participant.completedAt).toLocaleString('ru-RU')}
           </span>

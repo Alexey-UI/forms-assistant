@@ -6,6 +6,8 @@ import { SurveyList } from '@/widgets/SurveyList';
 import { FriendsPanel } from '@/widgets/FriendsPanel';
 import { GroupsPanel } from '@/widgets/GroupsPanel';
 import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
+import { PageHeading } from '@/shared/ui/PageHeading';
 import styles from './ProfilePage.module.css';
 
 export function ProfilePage() {
@@ -22,9 +24,9 @@ export function ProfilePage() {
 
   return (
     <div className={styles.page}>
-      <h1>Профиль{user ? `: ${user.displayName}` : ''}</h1>
+      <PageHeading eyebrow="Профиль" title={user?.displayName ?? 'Профиль'} />
 
-      <section className={styles.section}>
+      <Card className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2>Мои опросы</h2>
           <Link to="/surveys/new">
@@ -49,9 +51,9 @@ export function ProfilePage() {
             </>
           )}
         />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
+      <Card className={styles.section}>
         <h2>Опросы, где я участник</h2>
         <SurveyList
           surveys={sharedWithMe}
@@ -62,17 +64,17 @@ export function ProfilePage() {
             </Link>
           )}
         />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
+      <Card className={styles.section}>
         <h2>Друзья</h2>
         <FriendsPanel />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
+      <Card className={styles.section}>
         <h2>Группы</h2>
         <GroupsPanel />
-      </section>
+      </Card>
     </div>
   );
 }

@@ -74,10 +74,24 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
     ? `${window.location.origin}/s/${survey.shareLinkToken}`
     : null;
 
+  const statusLabel: Record<SurveyDetailDto['status'], string> = {
+    DRAFT: 'Черновик',
+    PUBLISHED: 'Опубликован',
+    CLOSED: 'Закрыт',
+  };
+
+  const statusBadgeClass: Record<SurveyDetailDto['status'], string> = {
+    DRAFT: '',
+    PUBLISHED: styles.status_PUBLISHED!,
+    CLOSED: styles.status_CLOSED!,
+  };
+
   return (
     <div className={styles.panel}>
       <div className={styles.statusRow}>
-        <span className={styles.status}>Статус: {survey.status}</span>
+        <span className={`${styles.status} ${statusBadgeClass[survey.status]}`}>
+          {statusLabel[survey.status]}
+        </span>
         {survey.status === 'DRAFT' && <Button onClick={() => void publish()}>Опубликовать</Button>}
         {survey.status === 'PUBLISHED' && (
           <Button variant="danger" onClick={() => void close()}>
@@ -91,7 +105,19 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
           <section className={styles.section}>
             <h3>Ссылка для прохождения</h3>
             {shareUrl ? (
-              <p className={styles.link}>{shareUrl}</p>
+              <div className={styles.linkRow}>
+                <p className={styles.link}>{shareUrl}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(shareUrl);
+                    notify('success', 'Ссылка скопирована');
+                  }}
+                >
+                  Копировать
+                </Button>
+              </div>
             ) : (
               <Button variant="secondary" onClick={() => void generateLink()}>
                 Создать ссылку

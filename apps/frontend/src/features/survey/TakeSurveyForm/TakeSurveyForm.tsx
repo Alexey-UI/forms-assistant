@@ -75,44 +75,55 @@ export function TakeSurveyForm({ questions, submitting, onSubmit }: TakeSurveyFo
 
           {question.type === 'TEXT' && (
             <Textarea
-              label=""
               value={(values[question.id] as string) ?? ''}
               onChange={(e) => setValue(question.id, e.target.value)}
             />
           )}
 
           {question.type === 'SINGLE_CHOICE' &&
-            question.options.map((option) => (
-              <label key={option.id} className={styles.optionLabel}>
-                <input
-                  type="radio"
-                  name={question.id}
-                  checked={values[question.id] === option.id}
-                  onChange={() => setValue(question.id, option.id)}
-                />
-                {option.text}
-              </label>
-            ))}
+            question.options.map((option) => {
+              const selected = values[question.id] === option.id;
+              return (
+                <label
+                  key={option.id}
+                  className={`${styles.optionLabel} ${selected ? styles.optionSelected : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name={question.id}
+                    checked={selected}
+                    onChange={() => setValue(question.id, option.id)}
+                  />
+                  {option.text}
+                </label>
+              );
+            })}
 
           {question.type === 'MULTIPLE_CHOICE' &&
-            question.options.map((option) => (
-              <label key={option.id} className={styles.optionLabel}>
-                <input
-                  type="checkbox"
-                  checked={((values[question.id] as string[] | undefined) ?? []).includes(
-                    option.id,
-                  )}
-                  onChange={() => toggleMultiple(question.id, option.id)}
-                />
-                {option.text}
-              </label>
-            ))}
+            question.options.map((option) => {
+              const selected = ((values[question.id] as string[] | undefined) ?? []).includes(
+                option.id,
+              );
+              return (
+                <label
+                  key={option.id}
+                  className={`${styles.optionLabel} ${selected ? styles.optionSelected : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() => toggleMultiple(question.id, option.id)}
+                  />
+                  {option.text}
+                </label>
+              );
+            })}
 
           {errors[question.id] && <p className={styles.error}>{errors[question.id]}</p>}
         </div>
       ))}
 
-      <Button type="submit" disabled={submitting}>
+      <Button type="submit" disabled={submitting} className={styles.submitButton}>
         {submitting ? 'Отправляем…' : 'Отправить ответы'}
       </Button>
     </form>
