@@ -130,15 +130,28 @@ erDiagram
 
 ### Эпик 11 — Docker
 
-- [ ] Dockerfile backend/frontend (multi-stage), docker-compose.yml (dev, с postgres), docker-compose.prod.yml
+- [x] Dockerfile backend/frontend (multi-stage), docker-compose.yml (dev, с postgres), docker-compose.prod.yml
+- [x] Проверено: `docker compose up -d --build` поднимает все 3 сервиса, миграции применяются, health-check и регистрация пользователя работают через контейнеры, nginx корректно проксирует `/api` на backend
+- [x] Найдены и исправлены реальные баги при сборке образов (не флуктуации сети):
+  - оба Dockerfile не копировали корневой `tsconfig.base.json`, от которого наследуются `apps/*/tsconfig.json` — `tsc`/`vite` не могли его найти в чистом контейнере (локально маскировалось инкрементальным кэшем `tsc -b`)
+  - `tsup` по умолчанию не бандлит workspace-зависимости — рантайм-образ backend падал с `ERR_MODULE_NOT_FOUND: @forms-assistant/shared`, т.к. в финальный образ копируется только `dist`, без `packages/shared`. Исправлено через `apps/backend/tsup.config.ts` с `noExternal: ['@forms-assistant/shared']`, чтобы shared-код инлайнился в бандл
 
 ### Эпик 12 — CI/CD
 
-- [ ] GitHub Actions: install → lint → test → build → build images, кэширование
+- [x] GitHub Actions workflow (.github/workflows/ci.yml): install → lint → format:check → typecheck → prisma generate/deploy → test → build, отдельный job сборки Docker-образов с кэшем через `type=gha`
+- [x] Workflow выровнен со всеми фактическими изменениями сессии (npm вместо pnpm, актуальные секреты для тестов)
+- [ ] Не прогонялся на реальном GitHub Actions — в репозитории нет remote (см. ниже, деплой/CI-провайдер настроим при появлении сервера)
 
 ### Эпик 13 — Тесты
 
-- [ ] Vitest: валидация, сервисы анонимности/участия, ключевая бизнес-логика бэкенда
+- [x] packages/shared: тесты zod-схем (`questionInputSchema` — правила superRefine для choice/text вопросов, `createSurveySchema`, `answerInputSchema`/`submitResponseSchema`)
+- [x] backend: `lib/duration.ts` (парсинг TTL)
+- [x] backend: интеграционные тесты гарантий анонимности через supertest + реальный Postgres (`modules/responses/anonymity.integration.test.ts`) — ключевой тест для этого проекта:
+  - ANONYMOUS: `Response.respondentUserId` всегда `null`, `Participation` не создаётся
+  - PUBLIC_LIST: `Participation` создаётся, но `Response.respondentUserId` всё равно `null`
+  - NAMED: `Response.respondentUserId` корректно указывает на respondent
+  - неаутентифицированная отправка в NAMED-опрос отклоняется (401)
+- [ ] Точечно можно расширить (friends/groups edge cases), но основной риск (анонимность) покрыт
 
 ---
 

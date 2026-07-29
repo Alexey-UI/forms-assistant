@@ -10,6 +10,7 @@ COPY apps/frontend/package.json apps/frontend/package.json
 RUN npm install --no-audit --no-fund
 
 FROM deps AS build
+COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/backend apps/backend
 RUN npm run prisma:generate --workspace=@forms-assistant/backend
