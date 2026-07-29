@@ -76,34 +76,35 @@ erDiagram
 - [x] npm workspaces, корневой package.json, tsconfig base (переключились с pnpm на npm из-за нестабильной сети при установке крупных пакетов Prisma)
 - [x] ESLint + Prettier конфиги (shared)
 - [x] Husky + lint-staged
-- [ ] Структура apps/backend, apps/frontend, packages/shared
+- [x] Структура apps/backend, apps/frontend, packages/shared
 
 ### Эпик 2 — Схема БД и Prisma
 
-- [ ] Prisma schema (User, Survey, Question, QuestionOption, Response, Answer, Participation, FriendRequest, Group, GroupMembership, SurveyShareLink, SurveyInvite, SurveyGroupShare, AnonymousSubmissionGuard)
-- [ ] Миграции + seed-скрипт
+- [x] Prisma schema (User, Survey, Question, QuestionOption, Response, Answer, Participation, FriendRequest, Group, GroupMembership, SurveyShareLink, SurveyInvite, SurveyGroupShare, AnonymousSubmissionGuard)
+- [x] Миграции + seed-скрипт
 
 ### Эпик 3 — Backend: каркас, ошибки, auth
 
-- [ ] Express app, слоистая архитектура (routes/controllers/services/repositories)
-- [ ] Zod DTO-валидация на входе, error middleware, логирование
-- [ ] Регистрация/логин, JWT access+refresh, middleware auth
+- [x] Express app, слоистая архитектура (routes/controllers/services/repositories)
+- [x] Zod DTO-валидация на входе, error middleware, логирование
+- [x] Регистрация/логин, JWT access+refresh, middleware auth
 
 ### Эпик 4 — Backend: friends/groups
 
-- [ ] Заявки в друзья (создание/подтверждение/отклонение), список друзей
-- [ ] CRUD групп, управление участниками/админами
+- [x] Заявки в друзья (создание/подтверждение/отклонение), список друзей
+- [x] CRUD групп, управление участниками/админами
 
 ### Эпик 5 — Backend: survey CRUD + вопросы
 
-- [ ] CRUD опроса и вопросов/вариантов, publish/unpublish
-- [ ] Шеринг: invite конкретных пользователей, share-link, share с группой
+- [x] CRUD опроса и вопросов/вариантов, publish/close
+- [x] Шеринг: invite конкретных пользователей, share-link, share с группой
 
 ### Эпик 6 — Backend: прохождение опроса и результаты
 
-- [ ] Публичный доступ к опросу по токену/id, отправка ответов (с учётом 3 режимов анонимности)
-- [ ] Защита от повторного прохождения (именной/публичный через Participation, анонимный через guard-токен)
-- [ ] Агрегация результатов, список участников (без ответов, если не именной)
+- [x] Публичный доступ к опросу по токену/id, отправка ответов (с учётом 3 режимов анонимности)
+- [x] Защита от повторного прохождения (именной/публичный через Participation, анонимный через guard-токен)
+- [x] Агрегация результатов, список участников (без ответов, если не именной)
+- [x] Проверено вручную end-to-end на локальном Postgres (register → create → publish → take → submit → results/participants → повторная отправка отклонена)
 
 ### Эпик 7 — Frontend: каркас
 
