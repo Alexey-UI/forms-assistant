@@ -1,0 +1,265 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SurveyAnonymityMode {
+  ANONYMOUS
+  PUBLIC_LIST
+  NAMED
+}
+
+enum SurveyStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TEXT
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum GroupMemberRole {
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  surveys              Survey[]             @relation("SurveyAuthor")
+  sentFriendRequests   FriendRequest[]      @relation("FriendRequestFrom")
+  receivedFriendRequests FriendRequest[]    @relation("FriendRequestTo")
+  groupMemberships     GroupMembership[]
+  createdGroups        Group[]              @relation("GroupCreator")
+  surveyInvites        SurveyInvite[]
+  participations       Participation[]
+  responses            Response[]           @relation("ResponseRespondent")
+
+  @@map("users")
+}
+
+model FriendRequest {
+  id        String              @id @default(uuid())
+  fromUser  User                @relation("FriendRequestFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUserId String
+  toUser    User                @relation("FriendRequestTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUserId  String
+  status    FriendRequestStatus @default(PENDING)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId, status])
+  @@map("friend_requests")
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdBy   User     @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members      GroupMembership[]
+  surveyShares SurveyGroupShare[]
+
+  @@map("groups")
+}
+
+model GroupMembership {
+  id       String          @id @default(uuid())
+  group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId  String
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  role     GroupMemberRole @default(MEMBER)
+  joinedAt DateTime        @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("group_memberships")
+}
+
+model Survey {
+  id                       String              @id @default(uuid())
+  title                    String
+  description              String?
+  author                   User                @relation("SurveyAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId                 String
+  anonymityMode            SurveyAnonymityMode
+  status                   SurveyStatus        @default(DRAFT)
+  allowMultipleSubmissions Boolean             @default(false)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+
+  questions   Question[]
+  shareLinks  SurveyShareLink[]
+  invites     SurveyInvite[]
+  groupShares SurveyGroupShare[]
+  responses   Response[]
+  participations Participation[]
+  anonymousGuards AnonymousSubmissionGuard[]
+
+  @@index([authorId])
+  @@map("surveys")
+}
+
+model Question {
+  id       String       @id @default(uuid())
+  survey   Survey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId String
+  type     QuestionType
+  text     String
+  required Boolean      @default(true)
+  order    Int
+
+  options QuestionOption[]
+  answers Answer[]
+
+  @@index([surveyId])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  text       String
+  order      Int
+
+  answerOptions AnswerOption[]
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+model SurveyShareLink {
+  id        String   @id @default(uuid())
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId  String
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("survey_share_links")
+}
+
+// Явное приглашение конкретного пользователя — используется только для доступа/распространения,
+// не связано с Response/Answer напрямую.
+model SurveyInvite {
+  id        String   @id @default(uuid())
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([surveyId, userId])
+  @@map("survey_invites")
+}
+
+model SurveyGroupShare {
+  id        String   @id @default(uuid())
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId  String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String
+  createdAt DateTime @default(now())
+
+  @@unique([surveyId, groupId])
+  @@map("survey_group_shares")
+}
+
+// Кто прошёл опрос (для PUBLIC_LIST/NAMED). Намеренно не имеет FK на Response/Answer,
+// чтобы по записи участия нельзя было восстановить конкретные ответы пользователя.
+model Participation {
+  id          String   @id @default(uuid())
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId    String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  completedAt DateTime @default(now())
+
+  @@unique([surveyId, userId])
+  @@map("participations")
+}
+
+// Защита от повторного анонимного прохождения без привязки к личности:
+// хранится только хэш анонимного токена из cookie, не идентификатор пользователя.
+model AnonymousSubmissionGuard {
+  id        String   @id @default(uuid())
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId  String
+  tokenHash String
+  createdAt DateTime @default(now())
+
+  @@unique([surveyId, tokenHash])
+  @@map("anonymous_submission_guards")
+}
+
+// submissionToken группирует ответы одного прохождения без привязки к пользователю.
+// respondentUserId заполняется ТОЛЬКО для опросов с anonymityMode = NAMED
+// (обеспечивается сервисным слоем + БД-триггером, см. миграцию
+// enforce_named_only_respondent).
+model Response {
+  id              String   @id @default(uuid())
+  survey          Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  surveyId        String
+  submissionToken String   @unique @default(uuid())
+  respondent      User?    @relation("ResponseRespondent", fields: [respondentUserId], references: [id], onDelete: SetNull)
+  respondentUserId String?
+  createdAt       DateTime @default(now())
+
+  answers Answer[]
+
+  @@index([surveyId])
+  @@index([respondentUserId])
+  @@map("responses")
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  responseId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  textValue  String?
+
+  selectedOptions AnswerOption[]
+
+  @@unique([responseId, questionId])
+  @@index([questionId])
+  @@map("answers")
+}
+
+model AnswerOption {
+  id       String         @id @default(uuid())
+  answer   Answer         @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answerId String
+  option   QuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId String
+
+  @@unique([answerId, optionId])
+  @@index([optionId])
+  @@map("answer_options")
+}
