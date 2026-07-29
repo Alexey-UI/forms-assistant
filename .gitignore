@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*.local
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/
+.claude/
+apps/backend/generated/
+apps/frontend/.vite/

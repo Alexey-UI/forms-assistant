@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DATABASE_URL: postgresql://forms:forms@localhost:5432/forms_assistant?schema=public
+  JWT_ACCESS_SECRET: ci-access-secret
+  JWT_REFRESH_SECRET: ci-refresh-secret
+  ANONYMOUS_TOKEN_SECRET: ci-anonymous-secret
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: forms
+          POSTGRES_PASSWORD: forms
+          POSTGRES_DB: forms_assistant
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U forms -d forms_assistant"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Prisma generate
+        run: npm run prisma:generate --workspace=@forms-assistant/backend
+
+      - name: Prisma migrate deploy
+        run: npm run prisma:deploy --workspace=@forms-assistant/backend
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  build-images:
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          push: false
+          tags: forms-assistant-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/frontend/Dockerfile
+          push: false
+          tags: forms-assistant-frontend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

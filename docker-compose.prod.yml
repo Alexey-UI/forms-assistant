@@ -1,0 +1,16 @@
+# Оверлей для продакшена: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Домен/DNS/TLS настраиваются отдельно (см. PLAN.md), когда появится сервер.
+services:
+  postgres:
+    ports: []
+
+  backend:
+    environment:
+      NODE_ENV: production
+    ports: []
+    expose:
+      - '4000'
+
+  frontend:
+    ports:
+      - '80:80'
