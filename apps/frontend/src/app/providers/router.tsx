@@ -10,6 +10,7 @@ import { SurveyCreatePage } from '@/pages/SurveyCreatePage';
 import { SurveyEditPage } from '@/pages/SurveyEditPage';
 import { SurveyResultsPage } from '@/pages/SurveyResultsPage';
 import { SurveyTakePage } from '@/pages/SurveyTakePage';
+import { GroupChatPage } from '@/pages/GroupChatPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 export const router = createBrowserRouter([
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
           { path: '/surveys/:surveyId/edit', element: <SurveyEditPage /> },
           { path: '/surveys/:surveyId/results', element: <SurveyResultsPage /> },
           { path: '/surveys/:surveyId/take', element: <SurveyTakePage /> },
+          { path: '/groups/:groupId', element: <GroupChatPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

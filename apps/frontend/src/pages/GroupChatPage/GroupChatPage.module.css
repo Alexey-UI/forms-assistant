@@ -1,0 +1,43 @@
+.back {
+  display: inline-block;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.back:hover {
+  color: var(--color-primary);
+}
+
+.description {
+  color: var(--color-text-muted);
+  margin: 0 0 1rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.chatCard {
+  height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  margin: 0 0 0.9rem;
+  font-size: 1rem;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chatCard {
+    height: 60vh;
+  }
+}

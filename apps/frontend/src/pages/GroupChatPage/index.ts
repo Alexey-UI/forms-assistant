@@ -1,0 +1,1 @@
+export { GroupChatPage } from './GroupChatPage';

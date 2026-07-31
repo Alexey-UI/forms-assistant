@@ -1,0 +1,171 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 0.25rem 0.25rem 0.75rem;
+  min-height: 0;
+}
+
+.loadMore {
+  align-self: center;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.loadMore:hover {
+  background: var(--gray-100);
+}
+
+.loadMore:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 2rem 0;
+}
+
+.message {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pink-100);
+  color: var(--pink-700);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.bubble {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.own .bubble {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-soft-border);
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.author {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.editInput {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  resize: vertical;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.composerInput {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  resize: none;
+  max-height: 6rem;
+}
+
+.composerInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.mutedNotice {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  padding: 0.5rem 0;
+}
