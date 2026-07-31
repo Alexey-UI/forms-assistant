@@ -4,4 +4,5 @@ export * from './schemas/friends';
 export * from './schemas/groups';
 export * from './schemas/survey';
 export * from './schemas/response';
+export * from './schemas/chat';
 export * from './types/api';

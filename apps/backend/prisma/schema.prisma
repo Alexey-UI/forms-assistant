@@ -53,6 +53,7 @@ model User {
   surveyInvites        SurveyInvite[]
   participations       Participation[]
   responses            Response[]           @relation("ResponseRespondent")
+  groupMessages        GroupMessage[]
 
   @@map("users")
 }
@@ -83,22 +84,41 @@ model Group {
 
   members      GroupMembership[]
   surveyShares SurveyGroupShare[]
+  messages     GroupMessage[]
 
   @@map("groups")
 }
 
 model GroupMembership {
-  id       String          @id @default(uuid())
-  group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  groupId  String
-  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  role     GroupMemberRole @default(MEMBER)
-  joinedAt DateTime        @default(now())
+  id         String          @id @default(uuid())
+  group      Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId    String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  role       GroupMemberRole @default(MEMBER)
+  // Мьют в чате группы — независим от role (ADMIN всё равно может быть замьючен другим админом).
+  canWrite   Boolean         @default(true)
+  // Обновляется при открытии чата группы; используется для подсчёта непрочитанных сообщений.
+  lastReadAt DateTime        @default(now())
+  joinedAt   DateTime        @default(now())
 
   @@unique([groupId, userId])
   @@index([userId])
   @@map("group_memberships")
+}
+
+model GroupMessage {
+  id        String    @id @default(uuid())
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  text      String
+  editedAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([groupId, createdAt])
+  @@map("group_messages")
 }
 
 model Survey {

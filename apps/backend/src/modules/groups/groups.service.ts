@@ -2,10 +2,22 @@ import type { CreateGroupInput, UpdateGroupInput } from '@forms-assistant/shared
 import { prisma } from '../../lib/prisma';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors';
 import { toGroupDetailDto, toGroupDto } from './groups.mapper';
+import { countUnreadMessages } from './chat.service';
 
 const MEMBERS_INCLUDE = { members: { include: { user: true } } } as const;
 
-async function getMembershipOrThrow(groupId: string, userId: string) {
+async function unreadCountFromGroup(
+  group: { id: string; members: { userId: string; lastReadAt: Date }[] },
+  userId: string,
+): Promise<number> {
+  const membership = group.members.find((member) => member.userId === userId);
+  if (!membership) {
+    return 0;
+  }
+  return countUnreadMessages(group.id, userId, membership.lastReadAt);
+}
+
+export async function getMembershipOrThrow(groupId: string, userId: string) {
   const membership = await prisma.groupMembership.findUnique({
     where: { groupId_userId: { groupId, userId } },
   });
@@ -15,7 +27,7 @@ async function getMembershipOrThrow(groupId: string, userId: string) {
   return membership;
 }
 
-async function assertGroupAdmin(groupId: string, userId: string) {
+export async function assertGroupAdmin(groupId: string, userId: string) {
   const membership = await getMembershipOrThrow(groupId, userId);
   if (membership.role !== 'ADMIN') {
     throw new ForbiddenError('Требуются права администратора группы');
@@ -41,7 +53,11 @@ export async function listMyGroups(userId: string) {
     include: MEMBERS_INCLUDE,
     orderBy: { createdAt: 'desc' },
   });
-  return groups.map((group) => toGroupDto(group, userId));
+  return Promise.all(
+    groups.map(async (group) =>
+      toGroupDto(group, userId, await unreadCountFromGroup(group, userId)),
+    ),
+  );
 }
 
 export async function getGroupDetail(groupId: string, userId: string) {
@@ -50,7 +66,7 @@ export async function getGroupDetail(groupId: string, userId: string) {
   if (!group) {
     throw new NotFoundError('Группа не найдена');
   }
-  return toGroupDetailDto(group, userId);
+  return toGroupDetailDto(group, userId, await unreadCountFromGroup(group, userId));
 }
 
 export async function updateGroup(groupId: string, userId: string, input: UpdateGroupInput) {
@@ -60,7 +76,7 @@ export async function updateGroup(groupId: string, userId: string, input: Update
     data: { name: input.name, description: input.description },
     include: MEMBERS_INCLUDE,
   });
-  return toGroupDetailDto(group, userId);
+  return toGroupDetailDto(group, userId, await unreadCountFromGroup(group, userId));
 }
 
 export async function deleteGroup(groupId: string, userId: string) {
@@ -88,7 +104,7 @@ export async function addMember(groupId: string, requesterId: string, newUserId:
     where: { id: groupId },
     include: MEMBERS_INCLUDE,
   });
-  return toGroupDetailDto(group, requesterId);
+  return toGroupDetailDto(group, requesterId, await unreadCountFromGroup(group, requesterId));
 }
 
 async function assertNotRemovingLastAdmin(groupId: string, targetUserId: string) {
@@ -137,5 +153,5 @@ export async function updateMemberRole(
     where: { id: groupId },
     include: MEMBERS_INCLUDE,
   });
-  return toGroupDetailDto(group, requesterId);
+  return toGroupDetailDto(group, requesterId, await unreadCountFromGroup(group, requesterId));
 }

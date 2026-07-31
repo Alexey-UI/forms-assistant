@@ -5,7 +5,11 @@ import { toUserDto } from '../users/user.mapper';
 type MembershipWithUser = GroupMembership & { user: User };
 type GroupWithMembers = Group & { members: MembershipWithUser[] };
 
-export function toGroupDto(group: GroupWithMembers, viewerUserId: string): GroupDto {
+export function toGroupDto(
+  group: GroupWithMembers,
+  viewerUserId: string,
+  unreadCount = 0,
+): GroupDto {
   const myMembership = group.members.find((member) => member.userId === viewerUserId);
   return {
     id: group.id,
@@ -14,12 +18,17 @@ export function toGroupDto(group: GroupWithMembers, viewerUserId: string): Group
     createdAt: group.createdAt.toISOString(),
     memberCount: group.members.length,
     myRole: myMembership?.role ?? null,
+    unreadCount,
   };
 }
 
-export function toGroupDetailDto(group: GroupWithMembers, viewerUserId: string): GroupDetailDto {
+export function toGroupDetailDto(
+  group: GroupWithMembers,
+  viewerUserId: string,
+  unreadCount = 0,
+): GroupDetailDto {
   return {
-    ...toGroupDto(group, viewerUserId),
+    ...toGroupDto(group, viewerUserId, unreadCount),
     members: group.members
       .slice()
       .sort((a, b) => a.joinedAt.getTime() - b.joinedAt.getTime())
@@ -31,6 +40,7 @@ function toGroupMemberDto(member: MembershipWithUser): GroupMemberDto {
   return {
     user: toUserDto(member.user),
     role: member.role,
+    canWrite: member.canWrite,
     joinedAt: member.joinedAt.toISOString(),
   };
 }

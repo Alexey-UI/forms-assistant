@@ -30,6 +30,7 @@ export interface FriendRequestDto {
 export interface GroupMemberDto {
   user: UserDto;
   role: GroupMemberRole;
+  canWrite: boolean;
   joinedAt: string;
 }
 
@@ -40,10 +41,30 @@ export interface GroupDto {
   createdAt: string;
   memberCount: number;
   myRole: GroupMemberRole | null;
+  unreadCount: number;
 }
 
 export interface GroupDetailDto extends GroupDto {
   members: GroupMemberDto[];
+}
+
+export interface GroupMessageDto {
+  id: string;
+  groupId: string;
+  author: UserDto;
+  text: string;
+  editedAt: string | null;
+  createdAt: string;
+}
+
+export interface GroupMessagePageDto {
+  messages: GroupMessageDto[];
+  nextCursor: string | null;
+}
+
+export interface GroupUnreadSummaryDto {
+  groupId: string;
+  unreadCount: number;
 }
 
 export interface QuestionOptionDto {
