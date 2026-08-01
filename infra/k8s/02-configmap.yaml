@@ -4,8 +4,8 @@ metadata:
   name: backend-config
   namespace: forms-assistant
 data:
-  NODE_ENV: "production"
-  PORT: "4000"
-  JWT_ACCESS_TTL: "15m"
-  JWT_REFRESH_TTL: "30d"
-  CORS_ORIGIN: "https://app.alexey-sdvizhkov.ru"
+  NODE_ENV: 'production'
+  PORT: '4000'
+  JWT_ACCESS_TTL: '15m'
+  JWT_REFRESH_TTL: '30d'
+  CORS_ORIGIN: 'https://app.alexey-sdvizhkov.ru'

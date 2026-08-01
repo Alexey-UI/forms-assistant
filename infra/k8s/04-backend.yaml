@@ -19,7 +19,7 @@ spec:
         - name: migrate
           image: cr.yandex/crpd72em5kgv8l2e2l5k/backend:latest
           workingDir: /repo/apps/backend
-          command: ["npx", "prisma", "migrate", "deploy"]
+          command: ['npx', 'prisma', 'migrate', 'deploy']
           envFrom:
             - secretRef:
                 name: backend-secrets

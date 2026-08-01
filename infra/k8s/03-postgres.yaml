@@ -4,7 +4,7 @@ metadata:
   name: postgres-data
   namespace: forms-assistant
 spec:
-  accessModes: ["ReadWriteOnce"]
+  accessModes: ['ReadWriteOnce']
   storageClassName: local-path
   resources:
     requests:
@@ -41,7 +41,7 @@ spec:
               subPath: pgdata
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "forms", "-d", "forms_assistant"]
+              command: ['pg_isready', '-U', 'forms', '-d', 'forms_assistant']
             initialDelaySeconds: 5
             periodSeconds: 5
           resources:
