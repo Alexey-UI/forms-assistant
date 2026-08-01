@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChatStore } from '@/entities/chat/model/chat.store';
 import { useUiStore } from '@/shared/model/ui.store';
+import { useConfirmStore } from '@/shared/model/confirm.store';
 import { ApiError } from '@/shared/api/client';
 import { initials } from '@/shared/lib/initials';
 import { Button } from '@/shared/ui/Button';
@@ -34,6 +35,7 @@ export function GroupMessages({ groupId, currentUserId, canWrite, isAdmin }: Gro
   const editMessage = useChatStore((state) => state.editMessage);
   const deleteMessage = useChatStore((state) => state.deleteMessage);
   const notify = useUiStore((state) => state.notify);
+  const confirmDialog = useConfirmStore((state) => state.confirm);
 
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -89,7 +91,12 @@ export function GroupMessages({ groupId, currentUserId, canWrite, isAdmin }: Gro
   };
 
   const handleDelete = async (messageId: string) => {
-    if (!window.confirm('Удалить сообщение?')) return;
+    const confirmed = await confirmDialog('Удалить сообщение?', {
+      title: 'Удаление сообщения',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!confirmed) return;
     try {
       await deleteMessage(groupId, messageId);
     } catch (error) {

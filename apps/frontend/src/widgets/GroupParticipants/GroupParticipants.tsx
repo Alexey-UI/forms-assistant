@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { GroupDetailDto, UserDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useUiStore } from '@/shared/model/ui.store';
+import { useConfirmStore } from '@/shared/model/confirm.store';
 import { initials } from '@/shared/lib/initials';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
@@ -17,6 +18,7 @@ export function GroupParticipants({ group, currentUserId, onChange }: GroupParti
   const [inviteQuery, setInviteQuery] = useState('');
   const [inviteResults, setInviteResults] = useState<UserDto[]>([]);
   const notify = useUiStore((state) => state.notify);
+  const confirmDialog = useConfirmStore((state) => state.confirm);
 
   const isAdmin = group.myRole === 'ADMIN';
 
@@ -43,9 +45,14 @@ export function GroupParticipants({ group, currentUserId, onChange }: GroupParti
       setInviteResults((prev) => prev.filter((user) => user.id !== userId));
     }, 'Не удалось добавить участника');
 
-  const removeMember = (userId: string) => {
-    if (!window.confirm('Удалить участника из группы?')) return;
-    void withErrorHandling(async () => {
+  const removeMember = async (userId: string) => {
+    const confirmed = await confirmDialog('Удалить участника из группы?', {
+      title: 'Удаление участника',
+      confirmLabel: 'Удалить',
+      danger: true,
+    });
+    if (!confirmed) return;
+    await withErrorHandling(async () => {
       await api.delete(`/groups/${group.id}/members/${userId}`);
       notify('success', 'Участник удалён');
     }, 'Не удалось удалить участника');
@@ -133,7 +140,7 @@ export function GroupParticipants({ group, currentUserId, onChange }: GroupParti
                   <button
                     type="button"
                     className={`${styles.actionButton} ${styles.danger}`}
-                    onClick={() => removeMember(member.user.id)}
+                    onClick={() => void removeMember(member.user.id)}
                   >
                     Удалить
                   </button>
