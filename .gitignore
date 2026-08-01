@@ -12,3 +12,16 @@ coverage/
 .claude/
 apps/backend/generated/
 apps/frontend/.vite/
+
+# Terraform / cloud infra
+infra/terraform/secrets/
+infra/terraform/**/*.tfvars
+!infra/terraform/**/*.tfvars.example
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+kubeconfig*

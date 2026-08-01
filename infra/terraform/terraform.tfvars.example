@@ -1,0 +1,21 @@
+service_account_key_file = "./secrets/sa-key.json"
+cloud_id                 = "b1xxxxxxxxxxxxxxxxxxxx"
+folder_id                = "b1xxxxxxxxxxxxxxxxxxxx"
+zone                     = "ru-central1-b"
+subnet_id                = "e2xxxxxxxxxxxxxxxxxxxx"
+
+vm_name          = "forms-assistant-demo"
+vm_cores         = 2
+vm_memory_gb     = 4
+vm_core_fraction = 100
+vm_disk_size_gb  = 20
+
+admin_username = "your_username"
+ssh_public_key = "ssh-ed25519 AAAA... your_email@example.com"
+
+# По умолчанию SSH и Kubernetes API открыты всем (0.0.0.0/0) — для демо ок,
+# но лучше сузить до вашего текущего внешнего IP: ["1.2.3.4/32"]
+allowed_ssh_cidrs = ["0.0.0.0/0"]
+
+domain       = "example.ru"
+app_hostname = "app.example.ru"

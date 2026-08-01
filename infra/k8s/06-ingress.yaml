@@ -1,0 +1,28 @@
+# NB: issuer сейчас указывает на staging (не доверенный браузерами) —
+# так безопаснее тестировать HTTP-01 challenge, не упираясь в лимиты
+# production Let's Encrypt. Переключить на letsencrypt-prod после
+# успешной выдачи staging-сертификата: см. infra/README.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app
+  namespace: forms-assistant
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - app.alexey-sdvizhkov.ru
+      secretName: app-tls
+  rules:
+    - host: app.alexey-sdvizhkov.ru
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
