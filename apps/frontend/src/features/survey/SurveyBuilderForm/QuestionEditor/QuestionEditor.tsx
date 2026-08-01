@@ -22,8 +22,8 @@ interface QuestionEditorProps {
 }
 
 const TYPE_LABEL: Record<string, string> = {
-  [QuestionType.SINGLE_CHOICE]: 'Один вариант',
-  [QuestionType.MULTIPLE_CHOICE]: 'Несколько вариантов',
+  [QuestionType.SINGLE_CHOICE]: 'Единственный выбор',
+  [QuestionType.MULTIPLE_CHOICE]: 'Множественный выбор',
   [QuestionType.TEXT]: 'Текстовый ответ',
 };
 

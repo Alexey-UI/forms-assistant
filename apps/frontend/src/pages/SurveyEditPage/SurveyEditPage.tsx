@@ -8,6 +8,7 @@ import { SurveyManagementPanel } from '@/widgets/SurveyManagementPanel';
 import { Card } from '@/shared/ui/Card';
 import { PageHeading } from '@/shared/ui/PageHeading';
 import { StateMessage } from '@/shared/ui/StateMessage';
+import { BackLink } from '@/shared/ui/BackLink';
 
 export function SurveyEditPage() {
   const { surveyId } = useParams<{ surveyId: string }>();
@@ -55,6 +56,7 @@ export function SurveyEditPage() {
 
   return (
     <div>
+      <BackLink to="/profile">Назад к профилю</BackLink>
       <PageHeading eyebrow="Редактирование" title={survey.title} />
       <SurveyManagementPanel survey={survey} onChange={() => void load()} />
       <Card>

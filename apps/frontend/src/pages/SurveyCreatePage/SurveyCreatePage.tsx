@@ -5,6 +5,7 @@ import { useUiStore } from '@/shared/model/ui.store';
 import { SurveyBuilderForm } from '@/features/survey/SurveyBuilderForm';
 import { Card } from '@/shared/ui/Card';
 import { PageHeading } from '@/shared/ui/PageHeading';
+import { BackLink } from '@/shared/ui/BackLink';
 
 export function SurveyCreatePage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export function SurveyCreatePage() {
 
   return (
     <div>
+      <BackLink to="/profile">Назад к профилю</BackLink>
       <PageHeading eyebrow="Новый опрос" title="Создание опроса" />
       <Card>
         <SurveyBuilderForm submitLabel="Создать черновик" onSubmit={handleSubmit} />

@@ -7,6 +7,7 @@ import { SurveyParticipants } from '@/widgets/SurveyParticipants';
 import { Card } from '@/shared/ui/Card';
 import { PageHeading } from '@/shared/ui/PageHeading';
 import { StateMessage } from '@/shared/ui/StateMessage';
+import { BackLink } from '@/shared/ui/BackLink';
 import styles from './SurveyResultsPage.module.css';
 
 export function SurveyResultsPage() {
@@ -40,6 +41,7 @@ export function SurveyResultsPage() {
 
   return (
     <div className={styles.page}>
+      <BackLink to="/profile">Назад к профилю</BackLink>
       <PageHeading eyebrow="Результаты" title="Результаты опроса" />
       <Card className={styles.section}>
         <SurveyResults results={results} />

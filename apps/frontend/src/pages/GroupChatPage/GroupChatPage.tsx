@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import type { GroupDetailDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
@@ -10,6 +10,7 @@ import { GroupParticipants } from '@/widgets/GroupParticipants';
 import { Card } from '@/shared/ui/Card';
 import { PageHeading } from '@/shared/ui/PageHeading';
 import { StateMessage } from '@/shared/ui/StateMessage';
+import { BackLink } from '@/shared/ui/BackLink';
 import styles from './GroupChatPage.module.css';
 
 export function GroupChatPage() {
@@ -76,9 +77,7 @@ export function GroupChatPage() {
   return (
     <div>
       <PageHeading eyebrow="Группа" title={group.name} />
-      <Link to="/profile" className={styles.back}>
-        ← Назад к группам
-      </Link>
+      <BackLink to="/profile">Назад к группам</BackLink>
       {group.description && <p className={styles.description}>{group.description}</p>}
 
       <div className={styles.layout}>
