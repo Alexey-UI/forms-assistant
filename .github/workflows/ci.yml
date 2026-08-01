@@ -48,14 +48,14 @@ jobs:
       - name: Format check
         run: npm run format:check
 
-      - name: Typecheck
-        run: npm run typecheck
-
       - name: Prisma generate
         run: npm run prisma:generate --workspace=@forms-assistant/backend
 
       - name: Prisma migrate deploy
         run: npm run prisma:deploy --workspace=@forms-assistant/backend
+
+      - name: Typecheck
+        run: npm run typecheck
 
       - name: Test
         run: npm test
