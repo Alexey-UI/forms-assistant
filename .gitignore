@@ -25,3 +25,6 @@ tfplan
 crash.log
 crash.*.log
 kubeconfig*
+
+# Личная шпаргалка по инфраструктурным файлам, не для публикации
+INFRA_MAP.md
