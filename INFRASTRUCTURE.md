@@ -153,6 +153,21 @@ Ingress-ресурс (`infra/k8s/06-ingress.yaml`) описывает:
 
 Важное следствие: HTTP-01 требует, чтобы домен **резолвился и порт 80 был доступен снаружи** — то есть без прописанного DNS и открытой SG-записи на 80 сертификат в принципе не выпустится.
 
+### 5.1 Известный нюанс: внутренний резолвер Yandex Cloud
+
+Self-check в cert-manager выполняется изнутри кластера, а DNS-запросы CoreDNS по умолчанию форвардит через `/etc/resolv.conf` ноды — а там прописан внутренний резолвер Yandex Cloud (`10.129.0.2` / `*.internal`). После смены делегирования домена этот резолвер может надолго (у нас — на 13+ часов) залипнуть с закэшированным `NXDOMAIN`, даже когда домен уже прекрасно резолвится и у пользователей, и через публичные резолверы (`8.8.8.8`, `77.88.8.8`) с той же ноды. Из-за этого `Challenge` бесконечно висит в `pending` со статусом `failed to perform self check GET request ... no such host`, хотя снаружи всё уже работает.
+
+Решение — `bootstrap-server.sh` после установки k3s патчит `Corefile` CoreDNS, заменяя `forward . /etc/resolv.conf` на `forward . 8.8.8.8 77.88.8.8`, и перезапускает CoreDNS. Это применяется автоматически при первичном бутстрапе сервера; если стенд поднимался до появления этого шага в скрипте — накатить вручную:
+
+```bash
+kubectl -n kube-system get configmap coredns -o jsonpath='{.data.Corefile}' \
+  | sed 's#forward . /etc/resolv.conf#forward . 8.8.8.8 77.88.8.8#' > /tmp/Corefile
+kubectl -n kube-system create configmap coredns --from-file=Corefile=/tmp/Corefile \
+  --from-literal=NodeHosts="$(kubectl -n kube-system get configmap coredns -o jsonpath='{.data.NodeHosts}')" \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n kube-system rollout restart deployment coredns
+```
+
 ## 6. Docker-образы
 
 Оба образа собираются multi-stage (`apps/backend/Dockerfile`, `apps/frontend/Dockerfile`), общий паттерн:
