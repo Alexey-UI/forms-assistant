@@ -29,6 +29,21 @@
   }
 }
 
+@media (max-width: 420px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions > a {
+    display: block;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
 .item:hover {
   border-color: var(--color-primary-soft-border);
   box-shadow: var(--shadow-sm);
