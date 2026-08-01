@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../lib/errors';
 import { logger } from '../lib/logger';
 
@@ -15,6 +16,11 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
 
   if (err instanceof ZodError) {
     res.status(400).json({ message: 'Ошибка валидации', details: err.flatten() });
+    return;
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    res.status(409).json({ message: 'Такая запись уже существует' });
     return;
   }
 
