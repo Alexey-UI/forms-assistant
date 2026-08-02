@@ -15,6 +15,7 @@ import {
 } from '../../lib/errors';
 import { hashAnonymousToken } from '../../lib/anonymous-token';
 import { toUserDto } from '../users/user.mapper';
+import { notify } from '../notifications/notifications.service';
 
 type QuestionWithOptions = Question & { options: QuestionOption[] };
 
@@ -212,6 +213,15 @@ export async function submitResponse(
       });
     }
   });
+
+  if (context.userId !== survey.authorId) {
+    await notify(
+      survey.authorId,
+      'SURVEY_RESPONSE',
+      `Новый ответ на опрос «${survey.title}»`,
+      `/surveys/${survey.id}/results`,
+    );
+  }
 }
 
 export async function getResults(surveyId: string, authorId: string): Promise<SurveyResultsDto> {
@@ -310,4 +320,74 @@ export async function getParticipants(
     user: toUserDto(participation.user),
     completedAt: participation.completedAt.toISOString(),
   }));
+}
+
+function csvEscape(value: string): string {
+  if (/["\n,;]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+function toCsv(rows: string[][]): string {
+  return rows.map((row) => row.map(csvEscape).join(',')).join('\r\n');
+}
+
+export async function exportResultsCsv(
+  surveyId: string,
+  authorId: string,
+): Promise<{ asciiFilename: string; utf8Filename: string; csv: string }> {
+  const survey = await prisma.survey.findUnique({ where: { id: surveyId } });
+  if (!survey) {
+    throw new BadRequestError('Опрос не найден');
+  }
+  if (survey.authorId !== authorId) {
+    throw new ForbiddenError('Вы не являетесь автором этого опроса');
+  }
+
+  const questions = await loadQuestions(surveyId);
+  const includeRespondent = survey.anonymityMode === 'NAMED';
+
+  const responses = await prisma.response.findMany({
+    where: { surveyId },
+    include: {
+      respondent: true,
+      answers: { include: { selectedOptions: { include: { option: true } } } },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  const headers = [
+    ...(includeRespondent ? ['Респондент', 'Email'] : []),
+    'Дата прохождения',
+    ...questions.map((question) => question.text),
+  ];
+
+  const rows = responses.map((response) => {
+    const answerByQuestionId = new Map(
+      response.answers.map((answer) => [answer.questionId, answer]),
+    );
+    const cells = questions.map((question) => {
+      const answer = answerByQuestionId.get(question.id);
+      if (!answer) return '';
+      if (question.type === 'TEXT') return answer.textValue ?? '';
+      return answer.selectedOptions.map((selected) => selected.option.text).join('; ');
+    });
+    return [
+      ...(includeRespondent
+        ? [response.respondent?.displayName ?? '', response.respondent?.email ?? '']
+        : []),
+      response.createdAt.toISOString(),
+      ...cells,
+    ];
+  });
+
+  // Content-Disposition допускает только ASCII в filename= — для остального (например,
+  // кириллицы) нужен RFC 5987 filename*=UTF-8''..., поэтому отдаём оба варианта.
+  const asciiTitle = survey.title.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return {
+    asciiFilename: `survey-${asciiTitle || surveyId}.csv`,
+    utf8Filename: `${survey.title}.csv`,
+    csv: toCsv([headers, ...rows]),
+  };
 }

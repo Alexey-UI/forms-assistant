@@ -11,6 +11,7 @@ import { friendsRouter } from './modules/friends/friends.routes';
 import { groupsRouter } from './modules/groups/groups.routes';
 import { surveysRouter } from './modules/surveys/surveys.routes';
 import { publicSurveyRouter } from './modules/responses/public.routes';
+import { notificationsRouter } from './modules/notifications/notifications.routes';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 export function createApp() {
@@ -32,6 +33,7 @@ export function createApp() {
   app.use('/api/groups', groupsRouter);
   app.use('/api/surveys', surveysRouter);
   app.use('/api/s', publicSurveyRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -125,6 +125,71 @@ describe('survey anonymity guarantees', () => {
 
     expect(submission.status).toBe(401);
   });
+
+  it('never includes respondent identity in CSV export for ANONYMOUS surveys', async () => {
+    const { surveyId, token } = await createPublishedSurvey(authorToken, 'ANONYMOUS');
+    const respondent = await registerUser('CSV Anonymous Respondent');
+
+    await request(app)
+      .post(`/api/s/${token}/responses`)
+      .set('Authorization', `Bearer ${respondent.accessToken}`)
+      .send({
+        answers: [{ questionId: await getFirstQuestionId(surveyId), textValue: 'Секретный ответ' }],
+      });
+
+    const exported = await request(app)
+      .get(`/api/surveys/${surveyId}/results/export`)
+      .set('Authorization', `Bearer ${authorToken}`);
+
+    expect(exported.status).toBe(200);
+    expect(exported.text).not.toContain('Респондент');
+    expect(exported.text).not.toContain(respondent.userId);
+  });
+
+  it('never includes respondent identity in CSV export for PUBLIC_LIST surveys', async () => {
+    const { surveyId, token } = await createPublishedSurvey(authorToken, 'PUBLIC_LIST');
+    const respondent = await registerUser('CSV Public Respondent');
+
+    await request(app)
+      .post(`/api/s/${token}/responses`)
+      .set('Authorization', `Bearer ${respondent.accessToken}`)
+      .send({
+        answers: [{ questionId: await getFirstQuestionId(surveyId), textValue: 'Ещё один ответ' }],
+      });
+
+    const exported = await request(app)
+      .get(`/api/surveys/${surveyId}/results/export`)
+      .set('Authorization', `Bearer ${authorToken}`);
+
+    expect(exported.status).toBe(200);
+    expect(exported.text).not.toContain('Респондент');
+    // Участие видно (PUBLIC_LIST), но не в CSV с ответами — иначе можно было бы
+    // сопоставить порядок строк с участниками и деанонимизировать.
+    const participation = await prisma.participation.findUnique({
+      where: { surveyId_userId: { surveyId, userId: respondent.userId } },
+    });
+    expect(participation).not.toBeNull();
+  });
+
+  it('includes respondent name and email in CSV export only for NAMED surveys', async () => {
+    const { surveyId, token } = await createPublishedSurvey(authorToken, 'NAMED');
+    const respondent = await registerUser('CSV Named Respondent');
+
+    await request(app)
+      .post(`/api/s/${token}/responses`)
+      .set('Authorization', `Bearer ${respondent.accessToken}`)
+      .send({
+        answers: [{ questionId: await getFirstQuestionId(surveyId), textValue: 'Именной ответ' }],
+      });
+
+    const exported = await request(app)
+      .get(`/api/surveys/${surveyId}/results/export`)
+      .set('Authorization', `Bearer ${authorToken}`);
+
+    expect(exported.status).toBe(200);
+    expect(exported.text).toContain('Респондент');
+    expect(exported.text).toContain('CSV Named Respondent');
+  });
 });
 
 async function getFirstQuestionId(surveyId: string): Promise<string> {

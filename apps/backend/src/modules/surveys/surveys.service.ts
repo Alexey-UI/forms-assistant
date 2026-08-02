@@ -3,6 +3,7 @@ import type { CreateSurveyInput, UpdateSurveyInput } from '@forms-assistant/shar
 import { prisma } from '../../lib/prisma';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../lib/errors';
 import { toSurveyDetailDto, toSurveySummaryDto } from './surveys.mapper';
+import { notify } from '../notifications/notifications.service';
 
 const QUESTIONS_INCLUDE = {
   questions: { include: { options: true } },
@@ -157,11 +158,63 @@ export async function revokeShareLink(surveyId: string, authorId: string) {
 }
 
 export async function inviteUsers(surveyId: string, authorId: string, userIds: string[]) {
-  await getOwnedSurveyOrThrow(surveyId, authorId);
+  const survey = await getOwnedSurveyOrThrow(surveyId, authorId);
   await prisma.surveyInvite.createMany({
     data: userIds.map((userId) => ({ surveyId, userId })),
     skipDuplicates: true,
   });
+  await Promise.all(
+    userIds.map((userId) =>
+      notify(
+        userId,
+        'SURVEY_INVITE',
+        `Вас пригласили пройти опрос «${survey.title}»`,
+        `/surveys/${surveyId}/take`,
+      ),
+    ),
+  );
+}
+
+export async function remindNonRespondents(surveyId: string, authorId: string): Promise<number> {
+  const survey = await getOwnedSurveyOrThrow(surveyId, authorId);
+  if (survey.anonymityMode === 'ANONYMOUS') {
+    throw new BadRequestError('Для анонимных опросов нельзя узнать, кто не ответил');
+  }
+  if (survey.status !== 'PUBLISHED') {
+    throw new BadRequestError('Напомнить можно только про опубликованный опрос');
+  }
+
+  const [invites, groupShares, participations] = await Promise.all([
+    prisma.surveyInvite.findMany({ where: { surveyId }, select: { userId: true } }),
+    prisma.surveyGroupShare.findMany({
+      where: { surveyId },
+      include: { group: { include: { members: { select: { userId: true } } } } },
+    }),
+    prisma.participation.findMany({ where: { surveyId }, select: { userId: true } }),
+  ]);
+
+  const audience = new Set<string>();
+  for (const invite of invites) audience.add(invite.userId);
+  for (const share of groupShares) {
+    for (const member of share.group.members) audience.add(member.userId);
+  }
+  audience.delete(authorId);
+
+  const participants = new Set(participations.map((participation) => participation.userId));
+  const nonRespondents = [...audience].filter((userId) => !participants.has(userId));
+
+  await Promise.all(
+    nonRespondents.map((userId) =>
+      notify(
+        userId,
+        'SURVEY_REMINDER',
+        `Напоминаем пройти опрос «${survey.title}»`,
+        `/surveys/${surveyId}/take`,
+      ),
+    ),
+  );
+
+  return nonRespondents.length;
 }
 
 export async function shareWithGroup(surveyId: string, authorId: string, groupId: string) {

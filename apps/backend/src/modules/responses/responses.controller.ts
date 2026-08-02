@@ -55,3 +55,18 @@ export async function getResultsHandler(req: Request, res: Response) {
 export async function getParticipantsHandler(req: Request, res: Response) {
   res.json(await responsesService.getParticipants(req.params.id as string, req.userId as string));
 }
+
+export async function exportResultsHandler(req: Request, res: Response) {
+  const { asciiFilename, utf8Filename, csv } = await responsesService.exportResultsCsv(
+    req.params.id as string,
+    req.userId as string,
+  );
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodeURIComponent(utf8Filename)}`,
+  );
+  // BOM, чтобы Excel на Windows корректно определил UTF-8 и не ломал кириллицу.
+  const bom = String.fromCharCode(0xfeff);
+  res.send(bom + csv);
+}

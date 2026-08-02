@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as groupsService from './groups.service';
 import { emitToGroup, emitToUser, joinUserToGroup, removeUserFromGroup } from '../../lib/realtime';
+import { notify } from '../notifications/notifications.service';
 
 export async function createGroupHandler(req: Request, res: Response) {
   const group = await groupsService.createGroup(req.userId as string, req.body);
@@ -40,6 +41,12 @@ export async function addMemberHandler(req: Request, res: Response) {
   await joinUserToGroup(newUserId, groupId);
   emitToGroup(groupId, 'member:added', group);
   emitToUser(newUserId, 'group:added', group);
+  await notify(
+    newUserId,
+    'GROUP_INVITE',
+    `Вас добавили в группу «${group.name}»`,
+    `/groups/${groupId}`,
+  );
 
   res.status(201).json(group);
 }

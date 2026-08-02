@@ -31,3 +31,12 @@ export const GroupMemberRole = {
   MEMBER: 'MEMBER',
 } as const;
 export type GroupMemberRole = (typeof GroupMemberRole)[keyof typeof GroupMemberRole];
+
+export const NotificationType = {
+  FRIEND_REQUEST: 'FRIEND_REQUEST',
+  SURVEY_INVITE: 'SURVEY_INVITE',
+  GROUP_INVITE: 'GROUP_INVITE',
+  SURVEY_RESPONSE: 'SURVEY_RESPONSE',
+  SURVEY_REMINDER: 'SURVEY_REMINDER',
+} as const;
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];

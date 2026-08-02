@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma';
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors';
 import { toFriendRequestDto } from './friends.mapper';
 import { toUserDto } from '../users/user.mapper';
+import { notify } from '../notifications/notifications.service';
 
 const USERS_INCLUDE = { fromUser: true, toUser: true } as const;
 
@@ -46,6 +47,12 @@ export async function sendFriendRequest(fromUserId: string, targetUserId: string
       data: { fromUserId, toUserId: targetUserId, status: 'PENDING' },
       include: USERS_INCLUDE,
     });
+    await notify(
+      targetUserId,
+      'FRIEND_REQUEST',
+      `${updated.fromUser.displayName} отправил(а) вам заявку в друзья`,
+      '/profile',
+    );
     return toFriendRequestDto(updated);
   }
 
@@ -53,6 +60,12 @@ export async function sendFriendRequest(fromUserId: string, targetUserId: string
     data: { fromUserId, toUserId: targetUserId, status: 'PENDING' },
     include: USERS_INCLUDE,
   });
+  await notify(
+    targetUserId,
+    'FRIEND_REQUEST',
+    `${created.fromUser.displayName} отправил(а) вам заявку в друзья`,
+    '/profile',
+  );
   return toFriendRequestDto(created);
 }
 

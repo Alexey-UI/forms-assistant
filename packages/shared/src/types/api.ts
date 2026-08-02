@@ -1,6 +1,7 @@
 import type {
   FriendRequestStatus,
   GroupMemberRole,
+  NotificationType,
   QuestionType,
   SurveyAnonymityMode,
   SurveyStatus,
@@ -137,4 +138,17 @@ export interface SurveyResultsDto {
 export interface SurveyParticipantDto {
   user: UserDto;
   completedAt: string;
+}
+
+export interface NotificationDto {
+  id: string;
+  type: NotificationType;
+  message: string;
+  link: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface RemindNonRespondentsResultDto {
+  remindedCount: number;
 }

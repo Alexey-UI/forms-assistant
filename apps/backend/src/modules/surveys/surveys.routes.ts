@@ -19,11 +19,13 @@ import {
   listMySurveysHandler,
   listSharedWithMeHandler,
   publishSurveyHandler,
+  remindNonRespondentsHandler,
   revokeShareLinkHandler,
   shareWithGroupHandler,
   updateSurveyHandler,
 } from './surveys.controller';
 import {
+  exportResultsHandler,
   getParticipantsHandler,
   getResultsHandler,
   getSurveyByIdHandler,
@@ -61,4 +63,6 @@ surveysRouter.post(
   asyncHandler(submitByIdHandler),
 );
 surveysRouter.get('/:id/results', asyncHandler(getResultsHandler));
+surveysRouter.get('/:id/results/export', asyncHandler(exportResultsHandler));
 surveysRouter.get('/:id/participants', asyncHandler(getParticipantsHandler));
+surveysRouter.post('/:id/remind', asyncHandler(remindNonRespondentsHandler));

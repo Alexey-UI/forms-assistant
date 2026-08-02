@@ -60,3 +60,11 @@ export async function shareWithGroupHandler(req: Request, res: Response) {
   );
   res.status(204).send();
 }
+
+export async function remindNonRespondentsHandler(req: Request, res: Response) {
+  const remindedCount = await surveysService.remindNonRespondents(
+    req.params.id as string,
+    req.userId as string,
+  );
+  res.json({ remindedCount });
+}

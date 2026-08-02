@@ -37,6 +37,14 @@ enum GroupMemberRole {
   MEMBER
 }
 
+enum NotificationType {
+  FRIEND_REQUEST
+  SURVEY_INVITE
+  GROUP_INVITE
+  SURVEY_RESPONSE
+  SURVEY_REMINDER
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -54,8 +62,23 @@ model User {
   participations       Participation[]
   responses            Response[]           @relation("ResponseRespondent")
   groupMessages        GroupMessage[]
+  notifications        Notification[]
 
   @@map("users")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      NotificationType
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read, createdAt])
+  @@map("notifications")
 }
 
 model FriendRequest {
