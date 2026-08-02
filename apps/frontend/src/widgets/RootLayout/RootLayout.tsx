@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { NotificationsHost } from '@/shared/ui/NotificationsHost';
 import { ConfirmDialogHost } from '@/shared/ui/ConfirmDialogHost';
+import { NotificationBell } from '@/widgets/NotificationBell';
 import { initials } from '@/shared/lib/initials';
 import styles from './RootLayout.module.css';
 
@@ -28,19 +29,25 @@ export function RootLayout() {
             Forms Assistant
           </Link>
 
-          <button
-            type="button"
-            className={styles.menuToggle}
-            aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
+          <div className={styles.mobileControls}>
+            {status === 'authenticated' && user && <NotificationBell />}
+            <button
+              type="button"
+              className={styles.menuToggle}
+              aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? '✕' : '☰'}
+            </button>
+          </div>
 
           <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
             {status === 'authenticated' && user ? (
               <>
+                <div className={styles.desktopBell}>
+                  <NotificationBell />
+                </div>
                 <Link to="/surveys/new" className={styles.createLink} onClick={closeMenu}>
                   + Новый опрос
                 </Link>

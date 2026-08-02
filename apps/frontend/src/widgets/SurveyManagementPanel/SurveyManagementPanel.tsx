@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
-import type { GroupDto, SurveyDetailDto, UserDto } from '@forms-assistant/shared';
+import { QRCodeSVG } from 'qrcode.react';
+import type {
+  GroupDto,
+  RemindNonRespondentsResultDto,
+  SurveyDetailDto,
+  UserDto,
+} from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
+import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { useUiStore } from '@/shared/model/ui.store';
+import { env } from '@/shared/config/env';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
@@ -17,6 +25,7 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [inviteQuery, setInviteQuery] = useState('');
   const [inviteResults, setInviteResults] = useState<UserDto[]>([]);
+  const [showQr, setShowQr] = useState(false);
   const notify = useUiStore((state) => state.notify);
 
   useEffect(() => {
@@ -55,6 +64,49 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
       await api.post(`/surveys/${survey.id}/share-group`, { groupId: selectedGroupId });
       notify('success', 'Опрос расшарен с группой');
     }, 'Не удалось расшарить опрос с группой');
+
+  const exportCsv = async () => {
+    try {
+      const accessToken = useAuthStore.getState().accessToken;
+      const response = await fetch(`${env.apiUrl}/surveys/${survey.id}/results/export`, {
+        credentials: 'include',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
+      if (!response.ok) {
+        throw new Error('Не удалось скачать CSV');
+      }
+      const disposition = response.headers.get('content-disposition') ?? '';
+      const utf8Match = /filename\*=UTF-8''([^;]+)/.exec(disposition);
+      const filename = utf8Match ? decodeURIComponent(utf8Match[1]!) : `survey-${survey.id}.csv`;
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      notify('error', 'Не удалось скачать CSV');
+    }
+  };
+
+  const remindNonRespondents = async () => {
+    try {
+      const result = await api.post<RemindNonRespondentsResultDto>(`/surveys/${survey.id}/remind`);
+      notify(
+        'success',
+        result.remindedCount > 0
+          ? `Напомнили ${result.remindedCount} участник(ам)`
+          : 'Все уже прошли опрос',
+      );
+    } catch (error) {
+      notify(
+        'error',
+        error instanceof ApiError ? error.message : 'Не удалось отправить напоминания',
+      );
+    }
+  };
 
   const searchUsers = async () => {
     if (inviteQuery.trim().length < 2) return;
@@ -105,19 +157,29 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
           <section className={styles.section}>
             <h3>Ссылка для прохождения</h3>
             {shareUrl ? (
-              <div className={styles.linkRow}>
-                <p className={styles.link}>{shareUrl}</p>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(shareUrl);
-                    notify('success', 'Ссылка скопирована');
-                  }}
-                >
-                  Копировать
-                </Button>
-              </div>
+              <>
+                <div className={styles.linkRow}>
+                  <p className={styles.link}>{shareUrl}</p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(shareUrl);
+                      notify('success', 'Ссылка скопирована');
+                    }}
+                  >
+                    Копировать
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={() => setShowQr((v) => !v)}>
+                    {showQr ? 'Скрыть QR' : 'Показать QR'}
+                  </Button>
+                </div>
+                {showQr && (
+                  <div className={styles.qrBox}>
+                    <QRCodeSVG value={shareUrl} size={160} />
+                  </div>
+                )}
+              </>
             ) : (
               <Button variant="secondary" onClick={() => void generateLink()}>
                 Создать ссылку
@@ -171,6 +233,24 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
               </div>
             </section>
           )}
+
+          <section className={styles.section}>
+            <h3>Результаты</h3>
+            <div className={styles.actionsRow}>
+              <Button type="button" variant="secondary" onClick={() => void exportCsv()}>
+                Скачать CSV
+              </Button>
+              {survey.status === 'PUBLISHED' && survey.anonymityMode !== 'ANONYMOUS' && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void remindNonRespondents()}
+                >
+                  Напомнить неответившим
+                </Button>
+              )}
+            </div>
+          </section>
         </>
       )}
     </div>

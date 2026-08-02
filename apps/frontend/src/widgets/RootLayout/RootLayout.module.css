@@ -46,6 +46,17 @@
   box-shadow: 0 0 0 4px var(--pink-50);
 }
 
+.mobileControls {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.desktopBell {
+  display: flex;
+}
+
 .menuToggle {
   display: none;
   align-items: center;
@@ -73,11 +84,19 @@
 }
 
 @media (max-width: 640px) {
+  .mobileControls {
+    display: flex;
+  }
+
   .menuToggle {
     display: flex;
   }
 
   .nav {
+    display: none;
+  }
+
+  .desktopBell {
     display: none;
   }
 
