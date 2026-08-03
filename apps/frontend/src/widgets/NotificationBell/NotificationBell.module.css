@@ -55,6 +55,21 @@
   overflow: hidden;
 }
 
+@media (max-width: 480px) {
+  .panel {
+    /* На мобильном колокольчик не у самого края экрана (справа ещё кнопка
+       меню), поэтому позиционирование от кнопки (right: 0) всё равно может
+       вылезти за левый край — фиксируем панель относительно вьюпорта. */
+    position: fixed;
+    top: 64px;
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: none;
+    max-height: min(420px, calc(100vh - 5rem));
+  }
+}
+
 .panelHeader {
   display: flex;
   align-items: center;
