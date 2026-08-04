@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import type { AnswerInput, SurveyForTakingDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
@@ -61,7 +62,9 @@ export function SurveyTakePage() {
     return (
       <div className={styles.page}>
         <Card className={styles.centerCard}>
-          <span className={styles.successIcon}>✓</span>
+          <span className={styles.successIcon}>
+            <Check size={28} strokeWidth={2.5} />
+          </span>
           <h1>Спасибо!</h1>
           <p>Ваш ответ отправлен.</p>
         </Card>

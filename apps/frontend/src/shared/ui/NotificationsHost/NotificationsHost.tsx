@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useUiStore } from '@/shared/model/ui.store';
 import styles from './NotificationsHost.module.css';
 
@@ -19,7 +20,7 @@ export function NotificationsHost() {
             onClick={() => dismissNotification(notification.id)}
             aria-label="Закрыть"
           >
-            ×
+            <X size={16} />
           </button>
         </div>
       ))}

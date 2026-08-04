@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import { useNotificationsStore } from '@/entities/notifications/model/notifications.store';
 import styles from './NotificationBell.module.css';
 
@@ -46,7 +47,7 @@ export function NotificationBell() {
         aria-label="Уведомления"
         onClick={() => setOpen((value) => !value)}
       >
-        🔔
+        <Bell size={18} />
         {unreadCount > 0 && (
           <span className={styles.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
         )}

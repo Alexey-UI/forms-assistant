@@ -25,14 +25,15 @@
 }
 
 .item button {
+  display: flex;
+  align-items: center;
   margin-left: auto;
   background: none;
   border: none;
   color: var(--color-text-subtle);
   cursor: pointer;
-  font-size: 1.05rem;
-  line-height: 1;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .item button:hover {

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { NotificationsHost } from '@/shared/ui/NotificationsHost';
 import { ConfirmDialogHost } from '@/shared/ui/ConfirmDialogHost';
 import { NotificationBell } from '@/widgets/NotificationBell';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { initials } from '@/shared/lib/initials';
 import styles from './RootLayout.module.css';
 
@@ -31,6 +33,7 @@ export function RootLayout() {
 
           <div className={styles.mobileControls}>
             {status === 'authenticated' && user && <NotificationBell />}
+            <ThemeToggle />
             <button
               type="button"
               className={styles.menuToggle}
@@ -38,11 +41,14 @@ export function RootLayout() {
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              {menuOpen ? '✕' : '☰'}
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
 
           <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+            <div className={styles.desktopThemeToggle}>
+              <ThemeToggle />
+            </div>
             {status === 'authenticated' && user ? (
               <>
                 <div className={styles.desktopBell}>
