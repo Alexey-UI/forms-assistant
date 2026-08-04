@@ -17,6 +17,7 @@ interface QuestionEditorProps {
   errors: FieldErrors<CreateSurveyInput>;
   questionIndex: number;
   questionType: (typeof QuestionType)[keyof typeof QuestionType];
+  isQuiz?: boolean;
   onRemove: () => void;
   onTypeChange: (type: (typeof QuestionType)[keyof typeof QuestionType]) => void;
 }
@@ -33,6 +34,7 @@ export function QuestionEditor({
   errors,
   questionIndex,
   questionType,
+  isQuiz,
   onRemove,
   onTypeChange,
 }: QuestionEditorProps) {
@@ -78,6 +80,15 @@ export function QuestionEditor({
                 {...register(`questions.${questionIndex}.options.${optionIndex}.text`)}
                 error={questionErrors?.options?.[optionIndex]?.text?.message}
               />
+              {isQuiz && (
+                <label className={styles.correctCheckbox}>
+                  <input
+                    type="checkbox"
+                    {...register(`questions.${questionIndex}.options.${optionIndex}.isCorrect`)}
+                  />
+                  Правильный
+                </label>
+              )}
               <Button
                 type="button"
                 variant="secondary"
@@ -94,7 +105,7 @@ export function QuestionEditor({
           <Button
             type="button"
             variant="secondary"
-            onClick={() => optionsArray.append({ text: '' })}
+            onClick={() => optionsArray.append({ text: '', isCorrect: false })}
           >
             Добавить вариант
           </Button>

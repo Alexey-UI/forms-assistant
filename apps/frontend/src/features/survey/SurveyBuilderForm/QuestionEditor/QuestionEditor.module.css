@@ -49,6 +49,23 @@
   margin-bottom: 0;
 }
 
+.correctCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.correctCheckbox input {
+  accent-color: var(--color-success);
+  width: 16px;
+  height: 16px;
+}
+
 @media (max-width: 480px) {
   .optionRow {
     flex-direction: column;

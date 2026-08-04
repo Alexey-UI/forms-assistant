@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { SurveySummaryDto } from '@forms-assistant/shared';
+import { formatDateTime } from '@/shared/lib/datetime';
 import styles from './SurveyList.module.css';
 
 const ANONYMITY_LABEL: Record<SurveySummaryDto['anonymityMode'], string> = {
@@ -44,6 +45,8 @@ export function SurveyList({ surveys, emptyText, renderActions }: SurveyListProp
             </div>
             <div className={styles.meta}>
               {ANONYMITY_LABEL[survey.anonymityMode]} · ответов: {survey.responseCount}
+              {survey.isQuiz && ' · квиз'}
+              {survey.deadline && ` · дедлайн: ${formatDateTime(survey.deadline)}`}
             </div>
           </div>
           <div className={styles.actions}>{renderActions(survey)}</div>

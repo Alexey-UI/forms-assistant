@@ -10,6 +10,7 @@ import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { useUiStore } from '@/shared/model/ui.store';
 import { env } from '@/shared/config/env';
+import { formatDateTime } from '@/shared/lib/datetime';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
@@ -52,6 +53,18 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
       await api.post(`/surveys/${survey.id}/close`);
       notify('success', 'Опрос закрыт');
     }, 'Не удалось закрыть опрос');
+
+  const startLive = () =>
+    withErrorHandling(async () => {
+      await api.post(`/surveys/${survey.id}/live/start`);
+      notify('success', 'Трансляция результатов запущена');
+    }, 'Не удалось начать трансляцию');
+
+  const stopLive = () =>
+    withErrorHandling(async () => {
+      await api.post(`/surveys/${survey.id}/live/stop`);
+      notify('success', 'Трансляция остановлена');
+    }, 'Не удалось остановить трансляцию');
 
   const generateLink = () =>
     withErrorHandling(async () => {
@@ -144,11 +157,26 @@ export function SurveyManagementPanel({ survey, onChange }: SurveyManagementPane
         <span className={`${styles.status} ${statusBadgeClass[survey.status]}`}>
           {statusLabel[survey.status]}
         </span>
+        {survey.isQuiz && <span className={styles.status}>Квиз</span>}
+        {survey.deadline && (
+          <span className={styles.deadline}>Дедлайн: {formatDateTime(survey.deadline)}</span>
+        )}
         {survey.status === 'DRAFT' && <Button onClick={() => void publish()}>Опубликовать</Button>}
         {survey.status === 'PUBLISHED' && (
-          <Button variant="danger" onClick={() => void close()}>
-            Закрыть опрос
-          </Button>
+          <>
+            <Button variant="danger" onClick={() => void close()}>
+              Закрыть опрос
+            </Button>
+            {survey.isLive ? (
+              <Button variant="secondary" onClick={() => void stopLive()}>
+                Остановить трансляцию
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={() => void startLive()}>
+                Начать трансляцию результатов
+              </Button>
+            )}
+          </>
         )}
       </div>
 

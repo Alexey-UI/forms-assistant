@@ -1,3 +1,10 @@
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
 .total {
   display: inline-flex;
   align-items: center;
@@ -8,7 +15,28 @@
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.85rem;
-  margin-bottom: 1.75rem;
+  margin: 0;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-danger);
 }
 
 .question {

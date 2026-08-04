@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import type { SurveyDetailDto } from '@forms-assistant/shared';
+import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { useSurveysStore } from '@/entities/survey/model/surveys.store';
+import { useUiStore } from '@/shared/model/ui.store';
 import { SurveyList } from '@/widgets/SurveyList';
 import { FriendsPanel } from '@/widgets/FriendsPanel';
 import { GroupsPanel } from '@/widgets/GroupsPanel';
@@ -11,16 +14,31 @@ import { PageHeading } from '@/shared/ui/PageHeading';
 import styles from './ProfilePage.module.css';
 
 export function ProfilePage() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const mySurveys = useSurveysStore((state) => state.mySurveys);
   const sharedWithMe = useSurveysStore((state) => state.sharedWithMe);
   const fetchMySurveys = useSurveysStore((state) => state.fetchMySurveys);
   const fetchSharedWithMe = useSurveysStore((state) => state.fetchSharedWithMe);
+  const notify = useUiStore((state) => state.notify);
 
   useEffect(() => {
     void fetchMySurveys();
     void fetchSharedWithMe();
   }, [fetchMySurveys, fetchSharedWithMe]);
+
+  const duplicateSurvey = async (surveyId: string) => {
+    try {
+      const duplicate = await api.post<SurveyDetailDto>(`/surveys/${surveyId}/duplicate`);
+      notify('success', 'Опрос продублирован как черновик');
+      navigate(`/surveys/${duplicate.id}/edit`);
+    } catch (error) {
+      notify(
+        'error',
+        error instanceof ApiError ? error.message : 'Не удалось продублировать опрос',
+      );
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -48,6 +66,13 @@ export function ProfilePage() {
                   Результаты
                 </Button>
               </Link>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void duplicateSurvey(survey.id)}
+              >
+                Клонировать
+              </Button>
             </>
           )}
         />

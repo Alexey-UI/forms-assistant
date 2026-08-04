@@ -5,7 +5,15 @@ import styles from './SurveyResults.module.css';
 export function SurveyResults({ results }: { results: SurveyResultsDto }) {
   return (
     <div>
-      <p className={styles.total}>Всего ответов: {results.totalResponses}</p>
+      <div className={styles.badges}>
+        <p className={styles.total}>Всего ответов: {results.totalResponses}</p>
+        {results.quiz && (
+          <p className={styles.total}>
+            Средний балл: {results.quiz.averageScore} из {results.quiz.maxScore}
+          </p>
+        )}
+        {results.isLive && <p className={styles.live}>Прямой эфир</p>}
+      </div>
       {results.questions.map((question) => (
         <div key={question.questionId} className={styles.question}>
           <h3>{question.text}</h3>

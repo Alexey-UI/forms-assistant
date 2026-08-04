@@ -17,6 +17,12 @@
   margin: 0;
 }
 
+.centerCard .score {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .successIcon {
   display: inline-flex;
   align-items: center;

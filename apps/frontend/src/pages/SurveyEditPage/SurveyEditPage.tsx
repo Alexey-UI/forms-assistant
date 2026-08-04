@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import type { CreateSurveyInput, SurveyDetailDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useUiStore } from '@/shared/model/ui.store';
+import { toDatetimeLocalValue } from '@/shared/lib/datetime';
 import { SurveyBuilderForm } from '@/features/survey/SurveyBuilderForm';
 import { SurveyManagementPanel } from '@/widgets/SurveyManagementPanel';
 import { Card } from '@/shared/ui/Card';
@@ -45,12 +46,17 @@ export function SurveyEditPage() {
     description: survey.description ?? '',
     anonymityMode: survey.anonymityMode,
     allowMultipleSubmissions: survey.allowMultipleSubmissions,
+    deadline: toDatetimeLocalValue(survey.deadline),
+    isQuiz: survey.isQuiz,
     questions: survey.questions.map((question) => ({
       type: question.type,
       text: question.text,
       required: question.required,
       order: question.order,
-      options: question.options.map((option) => ({ text: option.text })),
+      options: question.options.map((option) => ({
+        text: option.text,
+        isCorrect: option.isCorrect,
+      })),
     })),
   };
 

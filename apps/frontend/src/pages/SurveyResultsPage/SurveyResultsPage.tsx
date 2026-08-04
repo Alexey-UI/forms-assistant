@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { SurveyParticipantDto, SurveyResultsDto } from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
+import { getSocket } from '@/entities/chat/model/socket';
 import { SurveyResults } from '@/widgets/SurveyResults';
 import { SurveyParticipants } from '@/widgets/SurveyParticipants';
 import { Card } from '@/shared/ui/Card';
@@ -29,6 +30,23 @@ export function SurveyResultsPage() {
       .catch((e) =>
         setError(e instanceof ApiError ? e.message : 'Не удалось загрузить результаты'),
       );
+  }, [surveyId]);
+
+  useEffect(() => {
+    if (!surveyId) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleLiveResults = (payload: { surveyId: string; results: SurveyResultsDto }) => {
+      if (payload.surveyId === surveyId) {
+        setResults(payload.results);
+      }
+    };
+
+    socket.on('live:results', handleLiveResults);
+    return () => {
+      socket.off('live:results', handleLiveResults);
+    };
   }, [surveyId]);
 
   if (error) {

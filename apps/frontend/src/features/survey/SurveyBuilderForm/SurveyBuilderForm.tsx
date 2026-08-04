@@ -25,7 +25,10 @@ function emptyQuestion(order: number): CreateSurveyInput['questions'][number] {
     text: '',
     required: true,
     order,
-    options: [{ text: '' }, { text: '' }],
+    options: [
+      { text: '', isCorrect: false },
+      { text: '', isCorrect: false },
+    ],
   };
 }
 
@@ -41,6 +44,8 @@ const DEFAULT_VALUES: CreateSurveyInput = {
   description: '',
   anonymityMode: SurveyAnonymityMode.NAMED,
   allowMultipleSubmissions: false,
+  deadline: '',
+  isQuiz: false,
   questions: [emptyQuestion(0)],
 };
 
@@ -64,6 +69,7 @@ export function SurveyBuilderForm({
 
   const questionsArray = useFieldArray({ control, name: 'questions' });
   const questionTypes = watch('questions').map((question) => question.type);
+  const isQuiz = watch('isQuiz');
 
   const handleTypeChange = (
     questionIndex: number,
@@ -76,7 +82,10 @@ export function SurveyBuilderForm({
     } else {
       const current = watch(`questions.${questionIndex}.options`) ?? [];
       if (current.length < 2) {
-        setValue(`questions.${questionIndex}.options`, [{ text: '' }, { text: '' }]);
+        setValue(`questions.${questionIndex}.options`, [
+          { text: '', isCorrect: false },
+          { text: '', isCorrect: false },
+        ]);
       }
     }
   };
@@ -107,6 +116,16 @@ export function SurveyBuilderForm({
         <input type="checkbox" {...register('allowMultipleSubmissions')} />
         Разрешить проходить опрос повторно
       </label>
+      <Input
+        type="datetime-local"
+        label="Дедлайн (необязательно)"
+        {...register('deadline')}
+        error={typeof errors.deadline?.message === 'string' ? errors.deadline.message : undefined}
+      />
+      <label className={styles.checkbox}>
+        <input type="checkbox" {...register('isQuiz')} disabled={locked} />
+        Квиз-режим (с подсчётом баллов за правильные ответы)
+      </label>
 
       <h2>Вопросы</h2>
       {locked && (
@@ -121,6 +140,7 @@ export function SurveyBuilderForm({
             errors={errors}
             questionIndex={index}
             questionType={questionTypes[index] ?? QuestionType.SINGLE_CHOICE}
+            isQuiz={isQuiz}
             onRemove={() => questionsArray.remove(index)}
             onTypeChange={(type) => handleTypeChange(index, type)}
           />

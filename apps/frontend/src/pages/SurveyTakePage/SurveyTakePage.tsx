@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { Check } from 'lucide-react';
-import type { AnswerInput, SurveyForTakingDto } from '@forms-assistant/shared';
+import type {
+  AnswerInput,
+  SubmitResponseResultDto,
+  SurveyForTakingDto,
+} from '@forms-assistant/shared';
 import { api, ApiError } from '@/shared/api/client';
 import { useAuthStore } from '@/entities/auth/model/auth.store';
 import { TakeSurveyForm } from '@/features/survey/TakeSurveyForm';
@@ -18,6 +22,7 @@ export function SurveyTakePage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<SubmitResponseResultDto | null>(null);
 
   const basePath = token ? `/s/${token}` : `/surveys/${surveyId}/take`;
   const submitPath = token ? `/s/${token}/responses` : `/surveys/${surveyId}/responses`;
@@ -41,7 +46,7 @@ export function SurveyTakePage() {
   const handleSubmit = async (answers: AnswerInput[]) => {
     setSubmitting(true);
     try {
-      await api.post(submitPath, { answers });
+      setResult(await api.post<SubmitResponseResultDto>(submitPath, { answers }));
       setSubmitted(true);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Не удалось отправить ответы');
@@ -67,6 +72,11 @@ export function SurveyTakePage() {
           </span>
           <h1>Спасибо!</h1>
           <p>Ваш ответ отправлен.</p>
+          {result?.score !== null && result?.score !== undefined && (
+            <p className={styles.score}>
+              Вы набрали {result.score} из {result.maxScore}
+            </p>
+          )}
         </Card>
       </div>
     );
