@@ -53,7 +53,8 @@
   flex-shrink: 0;
 }
 
-.desktopBell {
+.desktopBell,
+.desktopThemeToggle {
   display: flex;
 }
 
@@ -96,7 +97,8 @@
     display: none;
   }
 
-  .desktopBell {
+  .desktopBell,
+  .desktopThemeToggle {
     display: none;
   }
 

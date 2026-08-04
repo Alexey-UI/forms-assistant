@@ -34,19 +34,44 @@ export function SurveyResults({ results }: { results: SurveyResultsDto }) {
                     layout="vertical"
                     margin={{ top: 4, right: 24, bottom: 4, left: 4 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      horizontal={false}
+                      stroke="var(--color-border)"
+                    />
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
+                      axisLine={{ stroke: 'var(--color-border-strong)' }}
+                      tickLine={{ stroke: 'var(--color-border-strong)' }}
+                    />
                     <YAxis
                       type="category"
                       dataKey="name"
                       width={120}
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }}
+                      axisLine={{ stroke: 'var(--color-border-strong)' }}
+                      tickLine={{ stroke: 'var(--color-border-strong)' }}
                       tickFormatter={(value: string) =>
                         value.length > 18 ? `${value.slice(0, 18)}…` : value
                       }
                     />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#ec4899" radius={[0, 4, 4, 0]} name="Ответов" />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--color-text)',
+                      }}
+                      labelStyle={{ color: 'var(--color-text)' }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      fill="var(--color-primary)"
+                      radius={[0, 4, 4, 0]}
+                      name="Ответов"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
