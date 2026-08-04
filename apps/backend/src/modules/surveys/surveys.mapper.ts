@@ -1,5 +1,5 @@
 import type { Question, QuestionOption, Survey } from '@prisma/client';
-import type { QuestionDto, SurveyDetailDto, SurveySummaryDto } from '@forms-assistant/shared';
+import type { QuestionAuthorDto, SurveyDetailDto, SurveySummaryDto } from '@forms-assistant/shared';
 
 type QuestionWithOptions = Question & { options: QuestionOption[] };
 type SurveyWithQuestions = Survey & {
@@ -17,6 +17,9 @@ export function toSurveySummaryDto(
     status: survey.status,
     anonymityMode: survey.anonymityMode,
     allowMultipleSubmissions: survey.allowMultipleSubmissions,
+    deadline: survey.deadline ? survey.deadline.toISOString() : null,
+    isQuiz: survey.isQuiz,
+    isLive: survey.isLive,
     createdAt: survey.createdAt.toISOString(),
     updatedAt: survey.updatedAt.toISOString(),
     authorId: survey.authorId,
@@ -31,14 +34,16 @@ export function toSurveyDetailDto(
   return {
     ...toSurveySummaryDto(survey),
     shareLinkToken,
+    // Автор видит isCorrect у вариантов — respondent-facing DTO (buildSurveyForTaking)
+    // собирается отдельно и этого поля не содержит.
     questions: survey.questions
       .slice()
       .sort((a, b) => a.order - b.order)
-      .map(toQuestionDto),
+      .map(toQuestionAuthorDto),
   };
 }
 
-function toQuestionDto(question: QuestionWithOptions): QuestionDto {
+function toQuestionAuthorDto(question: QuestionWithOptions): QuestionAuthorDto {
   return {
     id: question.id,
     type: question.type,
@@ -48,6 +53,11 @@ function toQuestionDto(question: QuestionWithOptions): QuestionDto {
     options: question.options
       .slice()
       .sort((a, b) => a.order - b.order)
-      .map((option) => ({ id: option.id, text: option.text, order: option.order })),
+      .map((option) => ({
+        id: option.id,
+        text: option.text,
+        order: option.order,
+        isCorrect: option.isCorrect,
+      })),
   };
 }

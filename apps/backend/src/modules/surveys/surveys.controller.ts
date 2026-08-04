@@ -37,6 +37,22 @@ export async function closeSurveyHandler(req: Request, res: Response) {
   res.json(await surveysService.closeSurvey(req.params.id as string, req.userId as string));
 }
 
+export async function duplicateSurveyHandler(req: Request, res: Response) {
+  const survey = await surveysService.duplicateSurvey(
+    req.params.id as string,
+    req.userId as string,
+  );
+  res.status(201).json(survey);
+}
+
+export async function startLiveHandler(req: Request, res: Response) {
+  res.json(await surveysService.startLive(req.params.id as string, req.userId as string));
+}
+
+export async function stopLiveHandler(req: Request, res: Response) {
+  res.json(await surveysService.stopLive(req.params.id as string, req.userId as string));
+}
+
 export async function createShareLinkHandler(req: Request, res: Response) {
   const token = await surveysService.createShareLink(req.params.id as string, req.userId as string);
   res.status(201).json({ token });

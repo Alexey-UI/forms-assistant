@@ -83,6 +83,16 @@ export interface QuestionDto {
   options: QuestionOptionDto[];
 }
 
+// Видны только автору опроса — respondent-facing DTO (QuestionDto/QuestionOptionDto)
+// сознательно не содержит isCorrect, чтобы не палить правильные ответы проходящим.
+export interface QuestionOptionAuthorDto extends QuestionOptionDto {
+  isCorrect: boolean;
+}
+
+export interface QuestionAuthorDto extends Omit<QuestionDto, 'options'> {
+  options: QuestionOptionAuthorDto[];
+}
+
 export interface SurveySummaryDto {
   id: string;
   title: string;
@@ -90,6 +100,9 @@ export interface SurveySummaryDto {
   status: SurveyStatus;
   anonymityMode: SurveyAnonymityMode;
   allowMultipleSubmissions: boolean;
+  deadline: string | null;
+  isQuiz: boolean;
+  isLive: boolean;
   createdAt: string;
   updatedAt: string;
   authorId: string;
@@ -97,7 +110,7 @@ export interface SurveySummaryDto {
 }
 
 export interface SurveyDetailDto extends SurveySummaryDto {
-  questions: QuestionDto[];
+  questions: QuestionAuthorDto[];
   shareLinkToken: string | null;
 }
 
@@ -107,9 +120,15 @@ export interface SurveyForTakingDto {
   description: string | null;
   anonymityMode: SurveyAnonymityMode;
   allowMultipleSubmissions: boolean;
+  isQuiz: boolean;
   questions: QuestionDto[];
   requiresAuth: boolean;
   alreadySubmitted: boolean;
+}
+
+export interface SubmitResponseResultDto {
+  score: number | null;
+  maxScore: number | null;
 }
 
 export interface SurveyResultOptionDto {
@@ -128,10 +147,17 @@ export interface SurveyResultQuestionDto {
   textAnswers?: string[];
 }
 
+export interface SurveyQuizStatsDto {
+  averageScore: number;
+  maxScore: number;
+}
+
 export interface SurveyResultsDto {
   surveyId: string;
   totalResponses: number;
   isAnonymousAggregate: boolean;
+  isLive: boolean;
+  quiz: SurveyQuizStatsDto | null;
   questions: SurveyResultQuestionDto[];
 }
 

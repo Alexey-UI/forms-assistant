@@ -67,4 +67,81 @@ describe('createSurveySchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('normalizes an empty deadline string to null', () => {
+    const result = createSurveySchema.safeParse({
+      title: 'Опрос',
+      anonymityMode: SurveyAnonymityMode.NAMED,
+      allowMultipleSubmissions: false,
+      deadline: '',
+      questions: [{ type: QuestionType.TEXT, text: 'Вопрос', required: false, order: 0 }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deadline).toBeNull();
+    }
+  });
+
+  it('rejects a quiz choice question without a marked correct option', () => {
+    const result = createSurveySchema.safeParse({
+      title: 'Квиз',
+      anonymityMode: SurveyAnonymityMode.NAMED,
+      allowMultipleSubmissions: false,
+      isQuiz: true,
+      questions: [
+        {
+          type: QuestionType.SINGLE_CHOICE,
+          text: 'Вопрос',
+          required: true,
+          order: 0,
+          options: [{ text: 'Да' }, { text: 'Нет' }],
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a quiz single-choice question with more than one correct option', () => {
+    const result = createSurveySchema.safeParse({
+      title: 'Квиз',
+      anonymityMode: SurveyAnonymityMode.NAMED,
+      allowMultipleSubmissions: false,
+      isQuiz: true,
+      questions: [
+        {
+          type: QuestionType.SINGLE_CHOICE,
+          text: 'Вопрос',
+          required: true,
+          order: 0,
+          options: [
+            { text: 'Да', isCorrect: true },
+            { text: 'Нет', isCorrect: true },
+          ],
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts a quiz choice question with exactly one correct option', () => {
+    const result = createSurveySchema.safeParse({
+      title: 'Квиз',
+      anonymityMode: SurveyAnonymityMode.NAMED,
+      allowMultipleSubmissions: false,
+      isQuiz: true,
+      questions: [
+        {
+          type: QuestionType.SINGLE_CHOICE,
+          text: 'Вопрос',
+          required: true,
+          order: 0,
+          options: [
+            { text: 'Да', isCorrect: true },
+            { text: 'Нет', isCorrect: false },
+          ],
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
 });

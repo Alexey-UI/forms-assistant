@@ -17,9 +17,24 @@ function toQuestionsCreateInput(questions: CreateSurveyInput['questions']) {
     required: question.required,
     order: question.order,
     options: question.options?.length
-      ? { create: question.options.map((option, index) => ({ text: option.text, order: index })) }
+      ? {
+          create: question.options.map((option, index) => ({
+            text: option.text,
+            order: index,
+            isCorrect: option.isCorrect,
+          })),
+        }
       : undefined,
   }));
+}
+
+function parseDeadline(value: string | null): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new BadRequestError('Некорректная дата дедлайна');
+  }
+  return parsed;
 }
 
 async function getOwnedSurveyOrThrow(surveyId: string, authorId: string) {
@@ -46,6 +61,8 @@ export async function createSurvey(authorId: string, input: CreateSurveyInput) {
       authorId,
       anonymityMode: input.anonymityMode,
       allowMultipleSubmissions: input.allowMultipleSubmissions,
+      deadline: parseDeadline(input.deadline),
+      isQuiz: input.isQuiz,
       questions: { create: toQuestionsCreateInput(input.questions) },
     },
     include: QUESTIONS_INCLUDE,
@@ -91,11 +108,12 @@ export async function getSurveyForAuthor(surveyId: string, authorId: string) {
 export async function updateSurvey(surveyId: string, authorId: string, input: UpdateSurveyInput) {
   const existing = await getOwnedSurveyOrThrow(surveyId, authorId);
 
-  // Вопросы и режим анонимности можно менять только у черновика — после публикации
-  // эти поля молча игнорируются, чтобы не ломать сохранение title/description и т.п.
+  // Вопросы, режим анонимности и квиз-режим можно менять только у черновика — после
+  // публикации эти поля молча игнорируются, чтобы не ломать сохранение title/description и т.п.
   const isDraft = existing.status === 'DRAFT';
   const nextQuestions = isDraft ? input.questions : undefined;
   const nextAnonymityMode = isDraft ? input.anonymityMode : undefined;
+  const nextIsQuiz = isDraft ? input.isQuiz : undefined;
 
   const survey = await prisma.$transaction(async (tx) => {
     if (nextQuestions) {
@@ -107,7 +125,9 @@ export async function updateSurvey(surveyId: string, authorId: string, input: Up
         title: input.title,
         description: input.description,
         allowMultipleSubmissions: input.allowMultipleSubmissions,
+        deadline: input.deadline === undefined ? undefined : parseDeadline(input.deadline),
         anonymityMode: nextAnonymityMode,
+        isQuiz: nextIsQuiz,
         questions: nextQuestions ? { create: toQuestionsCreateInput(nextQuestions) } : undefined,
       },
       include: QUESTIONS_INCLUDE,
@@ -137,7 +157,79 @@ export async function closeSurvey(surveyId: string, authorId: string) {
   if (survey.status !== 'PUBLISHED') {
     throw new BadRequestError('Закрыть можно только опубликованный опрос');
   }
-  await prisma.survey.update({ where: { id: surveyId }, data: { status: 'CLOSED' } });
+  await prisma.survey.update({
+    where: { id: surveyId },
+    data: { status: 'CLOSED', isLive: false },
+  });
+  return getSurveyForAuthor(surveyId, authorId);
+}
+
+// Вызывается фоновым шедулером (см. lib/scheduler.ts) — без привязки к конкретному автору.
+export async function closeSurveysPastDeadline(): Promise<number> {
+  const result = await prisma.survey.updateMany({
+    where: { status: 'PUBLISHED', deadline: { lte: new Date() } },
+    data: { status: 'CLOSED', isLive: false },
+  });
+  return result.count;
+}
+
+export async function duplicateSurvey(surveyId: string, authorId: string) {
+  const existing = await getOwnedSurveyOrThrow(surveyId, authorId);
+  const source = await prisma.survey.findUniqueOrThrow({
+    where: { id: surveyId },
+    include: QUESTIONS_INCLUDE,
+  });
+
+  const duplicate = await prisma.survey.create({
+    data: {
+      title: `${existing.title} (копия)`,
+      description: existing.description,
+      authorId,
+      anonymityMode: existing.anonymityMode,
+      allowMultipleSubmissions: existing.allowMultipleSubmissions,
+      isQuiz: existing.isQuiz,
+      questions: {
+        create: source.questions
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map((question) => ({
+            type: question.type,
+            text: question.text,
+            required: question.required,
+            order: question.order,
+            options: question.options.length
+              ? {
+                  create: question.options
+                    .slice()
+                    .sort((a, b) => a.order - b.order)
+                    .map((option) => ({
+                      text: option.text,
+                      order: option.order,
+                      isCorrect: option.isCorrect,
+                    })),
+                }
+              : undefined,
+          })),
+      },
+    },
+    include: QUESTIONS_INCLUDE,
+  });
+
+  return toSurveyDetailDto(duplicate, null);
+}
+
+export async function startLive(surveyId: string, authorId: string) {
+  const survey = await getOwnedSurveyOrThrow(surveyId, authorId);
+  if (survey.status !== 'PUBLISHED') {
+    throw new BadRequestError('Трансляцию можно начать только для опубликованного опроса');
+  }
+  await prisma.survey.update({ where: { id: surveyId }, data: { isLive: true } });
+  return getSurveyForAuthor(surveyId, authorId);
+}
+
+export async function stopLive(surveyId: string, authorId: string) {
+  await getOwnedSurveyOrThrow(surveyId, authorId);
+  await prisma.survey.update({ where: { id: surveyId }, data: { isLive: false } });
   return getSurveyForAuthor(surveyId, authorId);
 }
 

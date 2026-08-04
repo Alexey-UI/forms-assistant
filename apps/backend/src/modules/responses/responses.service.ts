@@ -1,6 +1,7 @@
 import type { Question, QuestionOption, Survey } from '@prisma/client';
 import type { AnswerInput, SubmitResponseInput } from '@forms-assistant/shared';
 import type {
+  SubmitResponseResultDto,
   SurveyForTakingDto,
   SurveyParticipantDto,
   SurveyResultQuestionDto,
@@ -14,6 +15,7 @@ import {
   UnauthorizedError,
 } from '../../lib/errors';
 import { hashAnonymousToken } from '../../lib/anonymous-token';
+import { emitToUser } from '../../lib/realtime';
 import { toUserDto } from '../users/user.mapper';
 import { notify } from '../notifications/notifications.service';
 
@@ -69,6 +71,7 @@ export async function buildSurveyForTaking(
     description: survey.description,
     anonymityMode: survey.anonymityMode,
     allowMultipleSubmissions: survey.allowMultipleSubmissions,
+    isQuiz: survey.isQuiz,
     requiresAuth,
     alreadySubmitted,
     questions: questions.map((question) => ({
@@ -137,13 +140,36 @@ interface SubmitContext {
   anonymousToken?: string;
 }
 
+function computeQuizScore(
+  questions: QuestionWithOptions[],
+  answers: AnswerInput[],
+): { score: number; maxScore: number } {
+  const answerByQuestionId = new Map(answers.map((answer) => [answer.questionId, answer]));
+  let score = 0;
+  let maxScore = 0;
+  for (const question of questions) {
+    if (question.type === 'TEXT') continue;
+    maxScore += 1;
+    const answer = answerByQuestionId.get(question.id);
+    const selected = new Set(answer?.selectedOptionIds ?? []);
+    const correct = new Set(
+      question.options.filter((option) => option.isCorrect).map((option) => option.id),
+    );
+    const isFullyCorrect =
+      selected.size === correct.size && [...selected].every((id) => correct.has(id));
+    if (isFullyCorrect) score += 1;
+  }
+  return { score, maxScore };
+}
+
 export async function submitResponse(
   survey: Survey,
   input: SubmitResponseInput,
   context: SubmitContext,
-) {
+): Promise<SubmitResponseResultDto> {
   const questions = await loadQuestions(survey.id);
   validateAnswers(questions, input.answers);
+  const quizResult = survey.isQuiz ? computeQuizScore(questions, input.answers) : null;
 
   const requiresAuth = survey.anonymityMode !== 'ANONYMOUS';
   if (requiresAuth && !context.userId) {
@@ -180,6 +206,8 @@ export async function submitResponse(
       data: {
         surveyId: survey.id,
         respondentUserId: survey.anonymityMode === 'NAMED' ? (context.userId as string) : null,
+        score: quizResult?.score ?? null,
+        maxScore: quizResult?.maxScore ?? null,
       },
     });
 
@@ -222,17 +250,19 @@ export async function submitResponse(
       `/surveys/${survey.id}/results`,
     );
   }
+
+  if (survey.isLive) {
+    const results = await computeSurveyResults(survey.id);
+    emitToUser(survey.authorId, 'live:results', { surveyId: survey.id, results });
+  }
+
+  return { score: quizResult?.score ?? null, maxScore: quizResult?.maxScore ?? null };
 }
 
-export async function getResults(surveyId: string, authorId: string): Promise<SurveyResultsDto> {
-  const survey = await prisma.survey.findUnique({ where: { id: surveyId } });
-  if (!survey) {
-    throw new BadRequestError('Опрос не найден');
-  }
-  if (survey.authorId !== authorId) {
-    throw new ForbiddenError('Вы не являетесь автором этого опроса');
-  }
-
+// Без проверки авторства — используется и авторизованным getResults, и внутренним
+// live-хуком из submitResponse (там владение уже подтверждено survey.authorId).
+export async function computeSurveyResults(surveyId: string): Promise<SurveyResultsDto> {
+  const survey = await prisma.survey.findUniqueOrThrow({ where: { id: surveyId } });
   const questions = await loadQuestions(surveyId);
   const totalResponses = await prisma.response.count({ where: { surveyId } });
 
@@ -287,12 +317,39 @@ export async function getResults(surveyId: string, authorId: string): Promise<Su
     });
   }
 
+  let quiz: SurveyResultsDto['quiz'] = null;
+  if (survey.isQuiz) {
+    const scored = await prisma.response.findMany({
+      where: { surveyId, score: { not: null } },
+      select: { score: true, maxScore: true },
+    });
+    const maxScore = scored[0]?.maxScore ?? 0;
+    const averageScore =
+      scored.length > 0
+        ? Math.round((scored.reduce((sum, r) => sum + (r.score ?? 0), 0) / scored.length) * 10) / 10
+        : 0;
+    quiz = { averageScore, maxScore };
+  }
+
   return {
     surveyId,
     totalResponses,
     isAnonymousAggregate: true,
+    isLive: survey.isLive,
+    quiz,
     questions: questionResults,
   };
+}
+
+export async function getResults(surveyId: string, authorId: string): Promise<SurveyResultsDto> {
+  const survey = await prisma.survey.findUnique({ where: { id: surveyId } });
+  if (!survey) {
+    throw new BadRequestError('Опрос не найден');
+  }
+  if (survey.authorId !== authorId) {
+    throw new ForbiddenError('Вы не являетесь автором этого опроса');
+  }
+  return computeSurveyResults(surveyId);
 }
 
 export async function getParticipants(
@@ -360,6 +417,7 @@ export async function exportResultsCsv(
   const headers = [
     ...(includeRespondent ? ['Респондент', 'Email'] : []),
     'Дата прохождения',
+    ...(survey.isQuiz ? ['Баллы'] : []),
     ...questions.map((question) => question.text),
   ];
 
@@ -378,6 +436,7 @@ export async function exportResultsCsv(
         ? [response.respondent?.displayName ?? '', response.respondent?.email ?? '']
         : []),
       response.createdAt.toISOString(),
+      ...(survey.isQuiz ? [`${response.score ?? 0}/${response.maxScore ?? 0}`] : []),
       ...cells,
     ];
   });

@@ -153,6 +153,9 @@ model Survey {
   anonymityMode            SurveyAnonymityMode
   status                   SurveyStatus        @default(DRAFT)
   allowMultipleSubmissions Boolean             @default(false)
+  deadline                 DateTime?
+  isQuiz                   Boolean             @default(false)
+  isLive                   Boolean             @default(false)
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
 
@@ -190,6 +193,8 @@ model QuestionOption {
   questionId String
   text       String
   order      Int
+  // Правильный вариант в квиз-режиме — виден только автору (см. QuestionOptionAuthorDto).
+  isCorrect  Boolean  @default(false)
 
   answerOptions AnswerOption[]
 
@@ -271,6 +276,9 @@ model Response {
   submissionToken String   @unique @default(uuid())
   respondent      User?    @relation("ResponseRespondent", fields: [respondentUserId], references: [id], onDelete: SetNull)
   respondentUserId String?
+  // Заполняются только для опросов с isQuiz=true; maxScore фиксируется на момент прохождения.
+  score           Int?
+  maxScore        Int?
   createdAt       DateTime @default(now())
 
   answers Answer[]

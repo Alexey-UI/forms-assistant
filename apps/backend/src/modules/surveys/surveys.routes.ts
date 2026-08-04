@@ -14,6 +14,7 @@ import {
   createShareLinkHandler,
   createSurveyHandler,
   deleteSurveyHandler,
+  duplicateSurveyHandler,
   getSurveyHandler,
   inviteUsersHandler,
   listMySurveysHandler,
@@ -22,6 +23,8 @@ import {
   remindNonRespondentsHandler,
   revokeShareLinkHandler,
   shareWithGroupHandler,
+  startLiveHandler,
+  stopLiveHandler,
   updateSurveyHandler,
 } from './surveys.controller';
 import {
@@ -44,6 +47,9 @@ surveysRouter.patch('/:id', validateBody(updateSurveySchema), asyncHandler(updat
 surveysRouter.delete('/:id', asyncHandler(deleteSurveyHandler));
 surveysRouter.post('/:id/publish', asyncHandler(publishSurveyHandler));
 surveysRouter.post('/:id/close', asyncHandler(closeSurveyHandler));
+surveysRouter.post('/:id/duplicate', asyncHandler(duplicateSurveyHandler));
+surveysRouter.post('/:id/live/start', asyncHandler(startLiveHandler));
+surveysRouter.post('/:id/live/stop', asyncHandler(stopLiveHandler));
 surveysRouter.post('/:id/share-link', asyncHandler(createShareLinkHandler));
 surveysRouter.delete('/:id/share-link', asyncHandler(revokeShareLinkHandler));
 surveysRouter.post(

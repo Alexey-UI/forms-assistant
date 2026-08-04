@@ -27,8 +27,11 @@ export async function getSurveyByTokenHandler(req: Request, res: Response) {
 export async function submitByTokenHandler(req: Request, res: Response) {
   const survey = await getPublishedSurveyByToken(req.params.token as string);
   const anonymousToken = resolveAnonymousToken(req, res, survey.anonymityMode);
-  await responsesService.submitResponse(survey, req.body, { userId: req.userId, anonymousToken });
-  res.status(201).json({ status: 'ok' });
+  const result = await responsesService.submitResponse(survey, req.body, {
+    userId: req.userId,
+    anonymousToken,
+  });
+  res.status(201).json({ status: 'ok', ...result });
 }
 
 export async function getSurveyByIdHandler(req: Request, res: Response) {
@@ -44,8 +47,11 @@ export async function getSurveyByIdHandler(req: Request, res: Response) {
 export async function submitByIdHandler(req: Request, res: Response) {
   const survey = await getPublishedSurveyForUser(req.params.id as string, req.userId as string);
   const anonymousToken = resolveAnonymousToken(req, res, survey.anonymityMode);
-  await responsesService.submitResponse(survey, req.body, { userId: req.userId, anonymousToken });
-  res.status(201).json({ status: 'ok' });
+  const result = await responsesService.submitResponse(survey, req.body, {
+    userId: req.userId,
+    anonymousToken,
+  });
+  res.status(201).json({ status: 'ok', ...result });
 }
 
 export async function getResultsHandler(req: Request, res: Response) {
